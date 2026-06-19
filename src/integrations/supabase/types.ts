@@ -14,7 +14,338 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      generations: {
+        Row: {
+          created_at: string
+          id: string
+          kind: string
+          metadata: Json
+          model: string
+          prompt: string
+          source_paths: Json
+          storage_bucket: string
+          storage_path: string
+          thread_id: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          kind: string
+          metadata?: Json
+          model: string
+          prompt: string
+          source_paths?: Json
+          storage_bucket?: string
+          storage_path: string
+          thread_id?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          kind?: string
+          metadata?: Json
+          model?: string
+          prompt?: string
+          source_paths?: Json
+          storage_bucket?: string
+          storage_path?: string
+          thread_id?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "generations_thread_id_fkey"
+            columns: ["thread_id"]
+            isOneToOne: false
+            referencedRelation: "threads"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      memories: {
+        Row: {
+          content: string
+          created_at: string
+          id: string
+          kind: string
+          source_thread_id: string | null
+          user_id: string
+        }
+        Insert: {
+          content: string
+          created_at?: string
+          id?: string
+          kind?: string
+          source_thread_id?: string | null
+          user_id: string
+        }
+        Update: {
+          content?: string
+          created_at?: string
+          id?: string
+          kind?: string
+          source_thread_id?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "memories_source_thread_id_fkey"
+            columns: ["source_thread_id"]
+            isOneToOne: false
+            referencedRelation: "threads"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      messages: {
+        Row: {
+          ai_sdk_id: string | null
+          created_at: string
+          id: string
+          mood: string | null
+          parts: Json
+          role: string
+          thread_id: string
+          user_id: string
+        }
+        Insert: {
+          ai_sdk_id?: string | null
+          created_at?: string
+          id?: string
+          mood?: string | null
+          parts?: Json
+          role: string
+          thread_id: string
+          user_id: string
+        }
+        Update: {
+          ai_sdk_id?: string | null
+          created_at?: string
+          id?: string
+          mood?: string | null
+          parts?: Json
+          role?: string
+          thread_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "messages_thread_id_fkey"
+            columns: ["thread_id"]
+            isOneToOne: false
+            referencedRelation: "threads"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      profiles: {
+        Row: {
+          assistant_name: string
+          avatar_style: string
+          body_font: string
+          created_at: string
+          default_chat_model: string
+          default_image_model: string
+          density: string
+          display_font: string
+          display_name: string | null
+          email: string | null
+          formality: number
+          id: string
+          input_mode: string
+          latitude: number | null
+          longitude: number | null
+          mono_font: string
+          mood_colors: Json
+          motion: string
+          persona: string
+          spoken_replies: boolean
+          system_prompt: string | null
+          theme: Json
+          timezone: string | null
+          tools_enabled: Json
+          updated_at: string
+          verbosity: number
+          voice_id: string
+          voice_instructions: string | null
+          voice_provider: string
+          voice_speed: number
+        }
+        Insert: {
+          assistant_name?: string
+          avatar_style?: string
+          body_font?: string
+          created_at?: string
+          default_chat_model?: string
+          default_image_model?: string
+          density?: string
+          display_font?: string
+          display_name?: string | null
+          email?: string | null
+          formality?: number
+          id: string
+          input_mode?: string
+          latitude?: number | null
+          longitude?: number | null
+          mono_font?: string
+          mood_colors?: Json
+          motion?: string
+          persona?: string
+          spoken_replies?: boolean
+          system_prompt?: string | null
+          theme?: Json
+          timezone?: string | null
+          tools_enabled?: Json
+          updated_at?: string
+          verbosity?: number
+          voice_id?: string
+          voice_instructions?: string | null
+          voice_provider?: string
+          voice_speed?: number
+        }
+        Update: {
+          assistant_name?: string
+          avatar_style?: string
+          body_font?: string
+          created_at?: string
+          default_chat_model?: string
+          default_image_model?: string
+          density?: string
+          display_font?: string
+          display_name?: string | null
+          email?: string | null
+          formality?: number
+          id?: string
+          input_mode?: string
+          latitude?: number | null
+          longitude?: number | null
+          mono_font?: string
+          mood_colors?: Json
+          motion?: string
+          persona?: string
+          spoken_replies?: boolean
+          system_prompt?: string | null
+          theme?: Json
+          timezone?: string | null
+          tools_enabled?: Json
+          updated_at?: string
+          verbosity?: number
+          voice_id?: string
+          voice_instructions?: string | null
+          voice_provider?: string
+          voice_speed?: number
+        }
+        Relationships: []
+      }
+      reminders: {
+        Row: {
+          created_at: string
+          done: boolean
+          due_at: string | null
+          id: string
+          text: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          done?: boolean
+          due_at?: string | null
+          id?: string
+          text: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          done?: boolean
+          due_at?: string | null
+          id?: string
+          text?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      threads: {
+        Row: {
+          created_at: string
+          id: string
+          persona: string | null
+          title: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          persona?: string | null
+          title?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          persona?: string | null
+          title?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      uploads: {
+        Row: {
+          created_at: string
+          extracted_text: string | null
+          id: string
+          kind: string
+          metadata: Json
+          mime_type: string | null
+          original_name: string | null
+          size_bytes: number | null
+          storage_bucket: string
+          storage_path: string
+          thread_id: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          extracted_text?: string | null
+          id?: string
+          kind: string
+          metadata?: Json
+          mime_type?: string | null
+          original_name?: string | null
+          size_bytes?: number | null
+          storage_bucket?: string
+          storage_path: string
+          thread_id?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          extracted_text?: string | null
+          id?: string
+          kind?: string
+          metadata?: Json
+          mime_type?: string | null
+          original_name?: string | null
+          size_bytes?: number | null
+          storage_bucket?: string
+          storage_path?: string
+          thread_id?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "uploads_thread_id_fkey"
+            columns: ["thread_id"]
+            isOneToOne: false
+            referencedRelation: "threads"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
