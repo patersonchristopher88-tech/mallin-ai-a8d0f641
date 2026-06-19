@@ -17,9 +17,12 @@ export const updateProfile = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((data: Record<string, unknown>) => data)
   .handler(async ({ data, context }) => {
+    // Supabase's generated update type is exact; we accept loose objects from the client
+    // (settings UI), so cast at the boundary.
     const { error } = await context.supabase
       .from("profiles")
-      .update(data)
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      .update(data as any)
       .eq("id", context.userId);
     if (error) throw new Error(error.message);
     return { ok: true };
