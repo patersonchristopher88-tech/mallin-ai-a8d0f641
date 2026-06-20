@@ -15,19 +15,20 @@ export const Route = createFileRoute("/api/stt")({
           }
 
           const form = await request.formData();
-          const audio = form.get("audio");
-          if (!(audio instanceof File) && !(audio instanceof Blob)) {
+          const audio = form.get("audio") as Blob | null;
+          if (!audio || typeof (audio as Blob).size !== "number") {
             return new Response("Missing audio file", { status: 400 });
           }
-          if ((audio as File).size === 0) {
+          if (audio.size === 0) {
             return new Response("Empty audio", { status: 400 });
           }
-          if ((audio as File).size > 25 * 1024 * 1024) {
+          if (audio.size > 25 * 1024 * 1024) {
             return new Response("Audio too large (>25MB)", { status: 413 });
           }
 
+          const maybeName = (audio as Blob & { name?: string }).name;
           const fileName =
-            (audio as File).name ||
+            maybeName ||
             `recording.${(audio.type || "audio/webm").includes("mp4") ? "mp4" : "webm"}`;
 
           const upstream = new FormData();
