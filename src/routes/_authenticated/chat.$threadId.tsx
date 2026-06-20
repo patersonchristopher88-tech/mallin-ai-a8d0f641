@@ -6,9 +6,11 @@ import { useServerFn } from "@tanstack/react-start";
 import { getThreadMessages } from "@/lib/aria/threads.functions";
 import { getProfile } from "@/lib/aria/profile.functions";
 import { JarvisOrb, type OrbState } from "@/components/aria/JarvisOrb";
+import { ThreadDrawer } from "@/components/aria/ThreadDrawer";
+import { VoiceMic } from "@/components/aria/VoiceMic";
 import { supabase } from "@/integrations/supabase/client";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { Send, Square } from "lucide-react";
+import { Send, Square, Menu, Volume2, VolumeX } from "lucide-react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import { useTheme } from "@/components/aria/ThemeProvider";
@@ -74,20 +76,21 @@ function ChatRuntime({
   onMoodChange: (m: "idle" | "thinking" | "speaking") => void;
 }) {
   const [input, setInput] = useState("");
+  const [voiceMode, setVoiceMode] = useState(false);
   const scrollRef = useRef<HTMLDivElement | null>(null);
+  const lastSpokenIdRef = useRef<string | null>(null);
+  const audioRef = useRef<HTMLAudioElement | null>(null);
 
   const transport = useMemo(
     () =>
       new DefaultChatTransport({
         api: "/api/chat",
         fetch: async (input, init) => {
-          // Attach bearer + threadId on every request
           const { data } = await supabase.auth.getSession();
           const token = data.session?.access_token;
           const headers = new Headers(init?.headers);
           if (token) headers.set("Authorization", `Bearer ${token}`);
           headers.set("Content-Type", "application/json");
-          // Merge threadId into body
           let body = init?.body;
           if (typeof body === "string") {
             try {
@@ -112,7 +115,6 @@ function ChatRuntime({
     },
   });
 
-  // Drive orb state from chat status
   const orbState: OrbState =
     status === "submitted" || status === "streaming"
       ? "thinking"
@@ -125,10 +127,55 @@ function ChatRuntime({
     else onMoodChange("idle");
   }, [orbState, onMoodChange]);
 
-  // Auto-scroll
   useEffect(() => {
     scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: "smooth" });
   }, [messages.length, status]);
+
+  // Auto-speak the latest assistant message when voice mode is on.
+  useEffect(() => {
+    if (!voiceMode) return;
+    if (status === "submitted" || status === "streaming") return;
+    const last = messages[messages.length - 1];
+    if (!last || last.role !== "assistant") return;
+    if (lastSpokenIdRef.current === last.id) return;
+    const text = last.parts
+      .map((p) => (p.type === "text" ? p.text : ""))
+      .join("")
+      .trim();
+    if (!text) return;
+    lastSpokenIdRef.current = last.id;
+    speak(text).catch(() => {});
+  }, [messages, status, voiceMode]);
+
+  async function speak(text: string) {
+    try {
+      const { data: sess } = await supabase.auth.getSession();
+      const token = sess.session?.access_token;
+      const res = await fetch("/api/tts/lovable", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
+        body: JSON.stringify({ text }),
+      });
+      if (!res.ok) throw new Error(await res.text());
+      const blob = await res.blob();
+      const url = URL.createObjectURL(blob);
+      if (audioRef.current) {
+        audioRef.current.pause();
+        audioRef.current.src = "";
+      }
+      const audio = new Audio(url);
+      audioRef.current = audio;
+      audio.onended = () => URL.revokeObjectURL(url);
+      onMoodChange("speaking" as never);
+      await audio.play();
+      audio.onpause = () => onMoodChange("idle");
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "TTS failed");
+    }
+  }
 
   const isLoading = status === "submitted" || status === "streaming";
 
@@ -137,40 +184,76 @@ function ChatRuntime({
     const text = input.trim();
     if (!text || isLoading) return;
     setInput("");
+    navigator.vibrate?.(8);
     await sendMessage({ text });
   }
 
+  function handleTranscript(text: string) {
+    if (isLoading) return;
+    if (voiceMode) {
+      void sendMessage({ text });
+    } else {
+      setInput((prev) => (prev ? prev + " " + text : text));
+    }
+  }
+
   return (
-    <div className="grid flex-1 grid-rows-[auto_1fr_auto]">
-      {/* Top status bar */}
-      <div className="flex items-center justify-between border-b border-primary/15 px-5 py-3">
-        <div className="flex items-center gap-3">
-          <div className="grid h-9 w-9 place-items-center">
-            <JarvisOrb state={orbState} size={36} />
+    <div className="flex min-h-0 flex-1 flex-col">
+      {/* Compact mobile HUD header */}
+      <div className="sticky top-0 z-10 flex items-center justify-between border-b border-primary/15 bg-background/85 px-4 py-2.5 backdrop-blur">
+        <ThreadDrawer
+          activeThreadId={threadId}
+          trigger={
+            <button
+              className="grid h-10 w-10 place-items-center rounded-lg border border-primary/30 bg-card/60 text-primary"
+              aria-label="Conversations"
+            >
+              <Menu className="h-4 w-4" />
+            </button>
+          }
+        />
+        <div className="flex min-w-0 items-center gap-2">
+          <div className="grid h-8 w-8 shrink-0 place-items-center">
+            <JarvisOrb state={orbState} size={32} />
           </div>
-          <div>
-            <div className="font-display text-sm uppercase tracking-widest text-primary hud-text-glow">
+          <div className="min-w-0">
+            <div className="truncate font-display text-xs uppercase tracking-[0.25em] text-primary hud-text-glow">
               {assistantName}
             </div>
-            <div className="font-mono text-[10px] uppercase tracking-widest text-muted-foreground">
-              {isLoading ? "Thinking…" : "Online · Standby"}
+            <div className="font-mono text-[9px] uppercase tracking-widest text-muted-foreground">
+              {isLoading ? "Thinking…" : voiceMode ? "Voice · Live" : "Online"}
             </div>
           </div>
         </div>
+        <button
+          onClick={() => {
+            setVoiceMode((v) => !v);
+            if (voiceMode) {
+              audioRef.current?.pause();
+            }
+          }}
+          aria-label="Toggle voice mode"
+          className={`grid h-10 w-10 place-items-center rounded-lg border transition ${
+            voiceMode
+              ? "border-accent bg-accent/15 text-accent"
+              : "border-primary/30 bg-card/60 text-primary"
+          }`}
+        >
+          {voiceMode ? <Volume2 className="h-4 w-4" /> : <VolumeX className="h-4 w-4" />}
+        </button>
       </div>
 
       {/* Messages */}
-      <div ref={scrollRef} className="overflow-y-auto px-4 py-6 sm:px-8">
-        <div className="mx-auto max-w-3xl space-y-6">
+      <div ref={scrollRef} className="flex-1 overflow-y-auto px-4 py-5">
+        <div className="mx-auto max-w-3xl space-y-5">
           {messages.length === 0 && !isLoading && (
-            <div className="grid place-items-center py-12 text-center">
-              <JarvisOrb state="idle" size={180} />
+            <div className="grid place-items-center py-8 text-center">
+              <JarvisOrb state="idle" size={200} />
               <p className="mt-6 font-mono text-[11px] uppercase tracking-[0.4em] text-primary/70">
                 Awaiting Command
               </p>
-              <p className="mt-3 max-w-md text-sm text-muted-foreground">
-                Ask anything. Voice, image generation, file uploads, and full customization arrive in the
-                next system tick.
+              <p className="mt-3 max-w-xs text-sm text-muted-foreground">
+                Tap the mic, or type. Toggle the speaker icon for hands-free voice mode.
               </p>
             </div>
           )}
@@ -189,9 +272,10 @@ function ChatRuntime({
       </div>
 
       {/* Composer */}
-      <div className="border-t border-primary/15 bg-background/60 px-4 py-4 sm:px-8 backdrop-blur">
+      <div className="border-t border-primary/15 bg-background/85 px-3 py-3 backdrop-blur">
         <form onSubmit={handleSend} className="mx-auto flex max-w-3xl items-end gap-2">
-          <div className="hud-corner relative flex-1 rounded-lg border border-primary/30 bg-card/60">
+          <VoiceMic onTranscript={handleTranscript} disabled={isLoading} />
+          <div className="hud-corner relative flex-1 rounded-xl border border-primary/30 bg-card/60">
             <textarea
               value={input}
               onChange={(e) => setInput(e.target.value)}
@@ -203,16 +287,15 @@ function ChatRuntime({
               }}
               placeholder={`Speak to ${assistantName}…`}
               rows={1}
-              className="block w-full resize-none bg-transparent px-4 py-3 text-foreground placeholder:text-muted-foreground/60 focus:outline-none"
-              style={{ minHeight: 48, maxHeight: 200 }}
-              autoFocus
+              className="block w-full resize-none bg-transparent px-3 py-3 text-foreground placeholder:text-muted-foreground/60 focus:outline-none"
+              style={{ minHeight: 48, maxHeight: 160 }}
             />
           </div>
           {isLoading ? (
             <button
               type="button"
               onClick={() => stop()}
-              className="grid h-12 w-12 place-items-center rounded-lg border border-destructive/40 bg-destructive/15 text-destructive transition hover:bg-destructive/25"
+              className="grid h-12 w-12 shrink-0 place-items-center rounded-full border border-destructive/40 bg-destructive/15 text-destructive transition"
               aria-label="Stop"
             >
               <Square className="h-4 w-4" />
@@ -221,16 +304,13 @@ function ChatRuntime({
             <button
               type="submit"
               disabled={!input.trim()}
-              className="grid h-12 w-12 place-items-center rounded-lg border border-primary bg-primary/15 text-primary transition hover:bg-primary/25 disabled:opacity-40 hud-glow"
+              className="grid h-12 w-12 shrink-0 place-items-center rounded-full border border-primary bg-primary/15 text-primary transition hover:bg-primary/25 disabled:opacity-40 hud-glow"
               aria-label="Send"
             >
               <Send className="h-4 w-4" />
             </button>
           )}
         </form>
-        <p className="mx-auto mt-2 max-w-3xl font-mono text-[10px] uppercase tracking-widest text-muted-foreground/70">
-          Powered by Lovable AI · ARIA may make mistakes. Voice & files arrive in next update.
-        </p>
       </div>
     </div>
   );
@@ -245,7 +325,7 @@ function MessageBubble({ message, assistantName }: { message: UIMessage; assista
   if (isUser) {
     return (
       <div className="flex justify-end">
-        <div className="max-w-[80%] rounded-2xl rounded-tr-sm border border-primary/40 bg-primary px-4 py-2.5 text-primary-foreground">
+        <div className="max-w-[85%] rounded-2xl rounded-tr-sm border border-primary/40 bg-primary px-3.5 py-2.5 text-primary-foreground">
           <p className="whitespace-pre-wrap text-sm leading-relaxed">{text}</p>
         </div>
       </div>
@@ -253,15 +333,15 @@ function MessageBubble({ message, assistantName }: { message: UIMessage; assista
   }
 
   return (
-    <div className="flex gap-3">
-      <div className="grid h-8 w-8 shrink-0 place-items-center rounded-full border border-primary/40 bg-card">
-        <div className="h-2.5 w-2.5 rounded-full bg-primary shadow-[0_0_8px_hsl(var(--primary))]" />
+    <div className="flex gap-2.5">
+      <div className="grid h-7 w-7 shrink-0 place-items-center rounded-full border border-primary/40 bg-card">
+        <div className="h-2 w-2 rounded-full bg-primary shadow-[0_0_8px_hsl(var(--primary))]" />
       </div>
-      <div className="flex-1">
-        <div className="mb-1 font-display text-[11px] uppercase tracking-widest text-primary/80">
+      <div className="min-w-0 flex-1">
+        <div className="mb-1 font-display text-[10px] uppercase tracking-widest text-primary/80">
           {assistantName}
         </div>
-        <div className="prose prose-invert prose-sm max-w-none text-foreground/90 [&_a]:text-primary [&_code]:rounded [&_code]:bg-card [&_code]:px-1 [&_code]:py-0.5 [&_pre]:bg-card [&_pre]:border [&_pre]:border-primary/20">
+        <div className="prose prose-invert prose-sm max-w-none break-words text-foreground/90 [&_a]:text-primary [&_code]:rounded [&_code]:bg-card [&_code]:px-1 [&_code]:py-0.5 [&_pre]:bg-card [&_pre]:border [&_pre]:border-primary/20">
           <ReactMarkdown remarkPlugins={[remarkGfm]}>{text}</ReactMarkdown>
         </div>
       </div>
