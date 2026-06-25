@@ -248,29 +248,73 @@ function ChatRuntime({
       <div ref={scrollRef} className="flex-1 overflow-y-auto px-4 py-5">
         <div className="mx-auto max-w-3xl space-y-5">
           {messages.length === 0 && !isLoading && (
-            <div className="grid place-items-center py-8 text-center">
-              <JarvisOrb state="idle" size={200} />
-              <p className="mt-6 font-mono text-[11px] uppercase tracking-[0.4em] text-primary/70">
+            <motion.div
+              initial={{ opacity: 0, scale: 0.92 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ duration: 0.6, ease: [0.2, 0.7, 0.2, 1] }}
+              className="grid place-items-center py-6 text-center"
+            >
+              <JarvisOrb state="idle" size={240} />
+              <motion.p
+                initial={{ opacity: 0, y: 8 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.35 }}
+                className="mt-6 font-mono text-[11px] uppercase tracking-[0.4em] text-primary/80 hud-text-glow"
+              >
                 Awaiting Command
-              </p>
-              <p className="mt-3 max-w-xs text-sm text-muted-foreground">
+              </motion.p>
+              <motion.p
+                initial={{ opacity: 0, y: 8 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.5 }}
+                className="mt-3 max-w-xs text-sm text-muted-foreground"
+              >
                 Tap the mic, or type. Toggle the speaker icon for hands-free voice mode.
-              </p>
-            </div>
+              </motion.p>
+            </motion.div>
           )}
 
-          {messages.map((m) => (
-            <MessageBubble key={m.id} message={m} assistantName={assistantName} />
-          ))}
+          <AnimatePresence initial={false}>
+            {messages.map((m) => (
+              <motion.div
+                key={m.id}
+                layout
+                initial={{ opacity: 0, y: 10, filter: "blur(6px)" }}
+                animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.35, ease: [0.2, 0.7, 0.2, 1] }}
+              >
+                <MessageBubble message={m} assistantName={assistantName} />
+              </motion.div>
+            ))}
+          </AnimatePresence>
 
           {isLoading && messages[messages.length - 1]?.role === "user" && (
-            <div className="flex items-center gap-3 text-primary/80">
-              <div className="h-2 w-2 animate-pulse rounded-full bg-primary" />
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              className="flex items-center gap-3 text-primary/80"
+            >
+              <span className="relative flex h-2 w-2">
+                <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-primary opacity-75" />
+                <span className="relative inline-flex h-2 w-2 rounded-full bg-primary" />
+              </span>
               <span className="font-mono text-[11px] uppercase tracking-widest">Computing…</span>
-            </div>
+              <span className="ml-2 flex gap-1">
+                {[0, 1, 2].map((i) => (
+                  <motion.span
+                    key={i}
+                    className="h-1.5 w-1.5 rounded-full bg-primary/70"
+                    animate={{ y: [0, -4, 0], opacity: [0.4, 1, 0.4] }}
+                    transition={{ duration: 0.9, repeat: Infinity, delay: i * 0.12 }}
+                  />
+                ))}
+              </span>
+            </motion.div>
           )}
         </div>
       </div>
+
 
       {/* Composer */}
       <div className="border-t border-primary/15 bg-background/85 px-3 py-3 backdrop-blur">
