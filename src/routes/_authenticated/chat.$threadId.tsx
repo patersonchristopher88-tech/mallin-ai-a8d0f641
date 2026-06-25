@@ -512,20 +512,54 @@ function MessageBubble({ message, assistantName }: { message: UIMessage; assista
   const text = message.parts
     .map((p) => (p.type === "text" ? p.text : ""))
     .join("");
+  const files = message.parts.flatMap((p) =>
+    p.type === "file"
+      ? [{ url: (p as { url: string }).url, mediaType: (p as { mediaType: string }).mediaType, filename: (p as { filename?: string }).filename }]
+      : [],
+  );
 
   if (isUser) {
     return (
       <div className="flex justify-end">
-        <div
-          className="max-w-[85%] rounded-2xl rounded-tr-sm border border-primary/40 px-3.5 py-2.5 text-primary-foreground"
-          style={{
-            background:
-              "linear-gradient(135deg, hsl(var(--primary)) 0%, hsl(var(--primary) / 0.85) 100%)",
-            boxShadow:
-              "0 0 0 1px hsl(var(--primary) / 0.4), 0 6px 24px -8px hsl(var(--primary) / 0.5)",
-          }}
-        >
-          <p className="whitespace-pre-wrap text-sm leading-relaxed">{text}</p>
+        <div className="flex max-w-[85%] flex-col items-end gap-1.5">
+          {files.length > 0 && (
+            <div className="flex flex-wrap justify-end gap-1.5">
+              {files.map((f, i) =>
+                f.mediaType?.startsWith("image/") ? (
+                  <a key={i} href={f.url} target="_blank" rel="noreferrer">
+                    <img
+                      src={f.url}
+                      alt={f.filename ?? "attachment"}
+                      className="max-h-48 max-w-[70vw] rounded-xl border border-primary/40 object-cover"
+                    />
+                  </a>
+                ) : (
+                  <a
+                    key={i}
+                    href={f.url}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="rounded-lg border border-primary/40 bg-card/70 px-2.5 py-1.5 text-xs text-foreground"
+                  >
+                    📎 {f.filename ?? "file"}
+                  </a>
+                ),
+              )}
+            </div>
+          )}
+          {text && (
+            <div
+              className="rounded-2xl rounded-tr-sm border border-primary/40 px-3.5 py-2.5 text-primary-foreground"
+              style={{
+                background:
+                  "linear-gradient(135deg, hsl(var(--primary)) 0%, hsl(var(--primary) / 0.85) 100%)",
+                boxShadow:
+                  "0 0 0 1px hsl(var(--primary) / 0.4), 0 6px 24px -8px hsl(var(--primary) / 0.5)",
+              }}
+            >
+              <p className="whitespace-pre-wrap text-sm leading-relaxed">{text}</p>
+            </div>
+          )}
         </div>
       </div>
     );
