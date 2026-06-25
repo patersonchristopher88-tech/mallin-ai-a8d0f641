@@ -399,6 +399,49 @@ function ChatRuntime({
       {/* Composer */}
       <div className="relative border-t border-primary/15 bg-background/70 px-3 py-3 backdrop-blur-xl">
         <div className="pointer-events-none absolute inset-x-0 -top-px h-px bg-gradient-to-r from-transparent via-primary/60 to-transparent" />
+        <input
+          ref={fileInputRef}
+          type="file"
+          multiple
+          accept="image/*,application/pdf,text/*"
+          className="hidden"
+          onChange={(e) => {
+            void handleFiles(e.target.files);
+            e.target.value = "";
+          }}
+        />
+        {attachments.length > 0 && (
+          <div className="mx-auto mb-2 flex max-w-3xl flex-wrap gap-2">
+            {attachments.map((a, i) => (
+              <motion.div
+                key={i}
+                layout
+                initial={{ opacity: 0, scale: 0.9 }}
+                animate={{ opacity: 1, scale: 1 }}
+                className="hud-corner relative flex h-16 w-16 items-center justify-center overflow-hidden rounded-lg border border-primary/30 bg-card/70"
+              >
+                {a.mediaType.startsWith("image/") && a.url ? (
+                  <img src={a.url} alt={a.name} className="h-full w-full object-cover" />
+                ) : (
+                  <Paperclip className="h-5 w-5 text-primary/70" />
+                )}
+                {a.uploading && (
+                  <div className="absolute inset-0 grid place-items-center bg-background/70">
+                    <Loader2 className="h-4 w-4 animate-spin text-primary" />
+                  </div>
+                )}
+                <button
+                  type="button"
+                  onClick={() => removeAttachment(i)}
+                  className="absolute right-0.5 top-0.5 grid h-4 w-4 place-items-center rounded-full bg-background/80 text-foreground"
+                  aria-label="Remove attachment"
+                >
+                  <X className="h-3 w-3" />
+                </button>
+              </motion.div>
+            ))}
+          </div>
+        )}
         <form onSubmit={handleSend} className="mx-auto flex max-w-3xl items-end gap-2">
           <VoiceMic onTranscript={handleTranscript} disabled={isLoading} />
           <motion.div
@@ -422,9 +465,17 @@ function ChatRuntime({
               }}
               placeholder={`Speak to ${assistantName}…`}
               rows={1}
-              className="block w-full resize-none bg-transparent px-3 py-3 text-foreground placeholder:text-muted-foreground/60 focus:outline-none"
+              className="block w-full resize-none bg-transparent px-3 py-3 pr-11 text-foreground placeholder:text-muted-foreground/60 focus:outline-none"
               style={{ minHeight: 48, maxHeight: 160 }}
             />
+            <button
+              type="button"
+              onClick={() => fileInputRef.current?.click()}
+              aria-label="Attach"
+              className="absolute bottom-1.5 right-1.5 grid h-9 w-9 place-items-center rounded-md text-primary/70 transition hover:bg-primary/10 hover:text-primary"
+            >
+              <Paperclip className="h-4 w-4" />
+            </button>
           </motion.div>
           {isLoading ? (
             <motion.button
@@ -439,7 +490,7 @@ function ChatRuntime({
           ) : (
             <motion.button
               type="submit"
-              disabled={!input.trim()}
+              disabled={!input.trim() && attachments.filter((a) => !a.uploading).length === 0}
               whileTap={{ scale: 0.9 }}
               whileHover={{ scale: 1.05 }}
               className={`grid h-12 w-12 shrink-0 place-items-center rounded-full border border-primary bg-primary/15 text-primary transition disabled:opacity-40 ${
