@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { cn } from "@/lib/utils";
+import { HolographicCore } from "./HolographicCore";
 
 export type OrbState = "idle" | "listening" | "thinking" | "speaking" | "alert";
 
@@ -50,6 +51,19 @@ export function JarvisOrb({
   // Speaking FFT-ish bars around equator
   const bars = 36;
   const barArr = Array.from({ length: bars }, (_, i) => i);
+
+  // For non-tiny sizes use the cinematic canvas core.
+  if (size >= 120) {
+    return (
+      <div
+        ref={wrapRef}
+        className={cn("relative grid place-items-center select-none animate-hud-bob", className)}
+        style={{ width: size, height: size }}
+      >
+        <HolographicCore state={state} size={size} amplitude={amplitude} />
+      </div>
+    );
+  }
 
   return (
     <div
