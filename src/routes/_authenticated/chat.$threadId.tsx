@@ -15,6 +15,7 @@ import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import { useTheme } from "@/components/aria/ThemeProvider";
 import { toast } from "sonner";
+import { motion, AnimatePresence } from "motion/react";
 
 export const Route = createFileRoute("/_authenticated/chat/$threadId")({
   ssr: false,
