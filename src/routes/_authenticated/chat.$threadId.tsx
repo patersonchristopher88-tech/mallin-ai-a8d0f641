@@ -80,9 +80,14 @@ function ChatRuntime({
 }) {
   const [input, setInput] = useState("");
   const [voiceMode, setVoiceMode] = useState(false);
+  const [attachments, setAttachments] = useState<
+    Array<{ url: string; mediaType: string; name: string; uploading?: boolean }>
+  >([]);
   const scrollRef = useRef<HTMLDivElement | null>(null);
   const lastSpokenIdRef = useRef<string | null>(null);
   const audioRef = useRef<HTMLAudioElement | null>(null);
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
+  const recordUploadFn = _useServerFn2(recordUpload);
 
   const transport = useMemo(
     () =>
