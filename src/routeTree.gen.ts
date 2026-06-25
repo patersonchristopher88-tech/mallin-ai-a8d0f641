@@ -13,6 +13,7 @@ import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as ApiSttRouteImport } from './routes/api/stt'
+import { Route as ApiGenerateImageRouteImport } from './routes/api/generate-image'
 import { Route as ApiChatRouteImport } from './routes/api/chat'
 import { Route as AuthenticatedStudioRouteImport } from './routes/_authenticated/studio'
 import { Route as AuthenticatedSettingsRouteImport } from './routes/_authenticated/settings'
@@ -38,6 +39,11 @@ const IndexRoute = IndexRouteImport.update({
 const ApiSttRoute = ApiSttRouteImport.update({
   id: '/api/stt',
   path: '/api/stt',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiGenerateImageRoute = ApiGenerateImageRouteImport.update({
+  id: '/api/generate-image',
+  path: '/api/generate-image',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiChatRoute = ApiChatRouteImport.update({
@@ -85,6 +91,7 @@ export interface FileRoutesByFullPath {
   '/settings': typeof AuthenticatedSettingsRoute
   '/studio': typeof AuthenticatedStudioRoute
   '/api/chat': typeof ApiChatRoute
+  '/api/generate-image': typeof ApiGenerateImageRoute
   '/api/stt': typeof ApiSttRoute
   '/chat/$threadId': typeof AuthenticatedChatThreadIdRoute
   '/api/tts/lovable': typeof ApiTtsLovableRoute
@@ -97,6 +104,7 @@ export interface FileRoutesByTo {
   '/settings': typeof AuthenticatedSettingsRoute
   '/studio': typeof AuthenticatedStudioRoute
   '/api/chat': typeof ApiChatRoute
+  '/api/generate-image': typeof ApiGenerateImageRoute
   '/api/stt': typeof ApiSttRoute
   '/chat/$threadId': typeof AuthenticatedChatThreadIdRoute
   '/api/tts/lovable': typeof ApiTtsLovableRoute
@@ -111,6 +119,7 @@ export interface FileRoutesById {
   '/_authenticated/settings': typeof AuthenticatedSettingsRoute
   '/_authenticated/studio': typeof AuthenticatedStudioRoute
   '/api/chat': typeof ApiChatRoute
+  '/api/generate-image': typeof ApiGenerateImageRoute
   '/api/stt': typeof ApiSttRoute
   '/_authenticated/chat/$threadId': typeof AuthenticatedChatThreadIdRoute
   '/api/tts/lovable': typeof ApiTtsLovableRoute
@@ -125,6 +134,7 @@ export interface FileRouteTypes {
     | '/settings'
     | '/studio'
     | '/api/chat'
+    | '/api/generate-image'
     | '/api/stt'
     | '/chat/$threadId'
     | '/api/tts/lovable'
@@ -137,6 +147,7 @@ export interface FileRouteTypes {
     | '/settings'
     | '/studio'
     | '/api/chat'
+    | '/api/generate-image'
     | '/api/stt'
     | '/chat/$threadId'
     | '/api/tts/lovable'
@@ -150,6 +161,7 @@ export interface FileRouteTypes {
     | '/_authenticated/settings'
     | '/_authenticated/studio'
     | '/api/chat'
+    | '/api/generate-image'
     | '/api/stt'
     | '/_authenticated/chat/$threadId'
     | '/api/tts/lovable'
@@ -160,6 +172,7 @@ export interface RootRouteChildren {
   AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
   AuthRoute: typeof AuthRoute
   ApiChatRoute: typeof ApiChatRoute
+  ApiGenerateImageRoute: typeof ApiGenerateImageRoute
   ApiSttRoute: typeof ApiSttRoute
   ApiTtsLovableRoute: typeof ApiTtsLovableRoute
 }
@@ -192,6 +205,13 @@ declare module '@tanstack/react-router' {
       path: '/api/stt'
       fullPath: '/api/stt'
       preLoaderRoute: typeof ApiSttRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/generate-image': {
+      id: '/api/generate-image'
+      path: '/api/generate-image'
+      fullPath: '/api/generate-image'
+      preLoaderRoute: typeof ApiGenerateImageRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/chat': {
@@ -279,6 +299,7 @@ const rootRouteChildren: RootRouteChildren = {
   AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
   AuthRoute: AuthRoute,
   ApiChatRoute: ApiChatRoute,
+  ApiGenerateImageRoute: ApiGenerateImageRoute,
   ApiSttRoute: ApiSttRoute,
   ApiTtsLovableRoute: ApiTtsLovableRoute,
 }
