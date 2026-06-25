@@ -190,10 +190,83 @@ function ChatRuntime({
   async function handleSend(e: React.FormEvent) {
     e.preventDefault();
     const text = input.trim();
-    if (!text || isLoading) return;
+    const ready = attachments.filter((a) => !a.uploading);
+    if ((!text && ready.length === 0) || isLoading) return;
+    if (attachments.some((a) => a.uploading)) {
+      toast.info("Attachments still uploading…");
+      return;
+    }
     setInput("");
+    setAttachments([]);
     navigator.vibrate?.(8);
-    await sendMessage({ text });
+    const fileParts = ready.map((a) => ({
+      type: "file" as const,
+      url: a.url,
+      mediaType: a.mediaType,
+      filename: a.name,
+    }));
+    await sendMessage({
+      parts: [
+        ...fileParts,
+        ...(text ? [{ type: "text" as const, text }] : []),
+      ],
+    });
+  }
+
+  async function handleFiles(files: FileList | null) {
+    if (!files || !files.length) return;
+    const list = Array.from(files).slice(0, 6);
+    for (const file of list) {
+      const ext = file.name.split(".").pop() ?? "bin";
+      const placeholder = {
+        url: "",
+        mediaType: file.type || "application/octet-stream",
+        name: file.name,
+        uploading: true,
+      };
+      setAttachments((arr) => [...arr, placeholder]);
+      try {
+        const { data: sess } = await supabase.auth.getSession();
+        const userId = sess.session?.user.id;
+        if (!userId) throw new Error("Not signed in");
+        const path = `${userId}/${Date.now()}-${crypto.randomUUID().slice(0, 8)}.${ext}`;
+        const { error: upErr } = await supabase.storage
+          .from("aria-uploads")
+          .upload(path, file, { contentType: file.type, upsert: false });
+        if (upErr) throw upErr;
+        const { data: signed, error: signErr } = await supabase.storage
+          .from("aria-uploads")
+          .createSignedUrl(path, 60 * 60 * 24);
+        if (signErr || !signed?.signedUrl) throw signErr ?? new Error("Sign failed");
+        await recordUploadFn({
+          data: {
+            path,
+            name: file.name,
+            mime: file.type || "application/octet-stream",
+            size: file.size,
+            threadId,
+          },
+        }).catch(() => {});
+        setAttachments((arr) =>
+          arr.map((a) =>
+            a === placeholder
+              ? {
+                  url: signed.signedUrl,
+                  mediaType: file.type || "application/octet-stream",
+                  name: file.name,
+                }
+              : a,
+          ),
+        );
+      } catch (err) {
+        toast.error(err instanceof Error ? err.message : "Upload failed");
+        setAttachments((arr) => arr.filter((a) => a !== placeholder));
+      }
+    }
+  }
+
+  function removeAttachment(i: number) {
+    setAttachments((arr) => arr.filter((_, idx) => idx !== i));
   }
 
   function handleTranscript(text: string) {
