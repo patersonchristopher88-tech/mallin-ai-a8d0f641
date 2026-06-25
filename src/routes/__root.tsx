@@ -12,6 +12,7 @@ import { useEffect, type ReactNode } from "react";
 import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
 import { ThemeProvider } from "@/components/aria/ThemeProvider";
+import { HudBackdrop } from "@/components/aria/HudBackdrop";
 import { Toaster } from "@/components/ui/sonner";
 
 function NotFoundComponent() {
@@ -121,10 +122,13 @@ function RootComponent() {
   return (
     <QueryClientProvider client={queryClient}>
       <ThemeProvider>
+        <HudBackdrop />
         <div className="hud-grid" />
         <div className="hud-vignette" />
+        <div className="hud-sweep" />
         <Outlet />
         <div className="hud-scanlines" />
+        <div className="hud-noise" />
         <Toaster
           theme="dark"
           position="top-right"

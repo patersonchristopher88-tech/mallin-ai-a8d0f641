@@ -260,16 +260,47 @@
   background: radial-gradient(ellipse at center, transparent 50%, hsl(220 80% 2%) 100%);
 }
 
+/* Slow horizontal radar sweep across the entire viewport */
+.hud-sweep {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 2;
+  background: linear-gradient(
+    100deg,
+    transparent 0%,
+    transparent 40%,
+    hsl(var(--hud) / 0.06) 50%,
+    transparent 60%,
+    transparent 100%
+  );
+  background-size: 250% 100%;
+  animation: hud-sweep 9s linear infinite;
+  mix-blend-mode: screen;
+}
+
+/* Animated film-grain noise (CSS-only, no asset) */
+.hud-noise {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 61;
+  opacity: 0.045;
+  mix-blend-mode: overlay;
+  background-image:
+    radial-gradient(hsl(var(--hud) / 0.6) 0.6px, transparent 0.6px),
+    radial-gradient(hsl(var(--hud) / 0.4) 0.4px, transparent 0.4px);
+  background-size: 3px 3px, 5px 5px;
+  background-position: 0 0, 1px 2px;
+  animation: hud-noise 0.6s steps(2) infinite;
+}
+
 @keyframes hud-pulse {
   0%, 100% { opacity: 0.55; transform: scale(1); }
   50% { opacity: 1; transform: scale(1.03); }
 }
-@keyframes hud-spin-slow {
-  to { transform: rotate(360deg); }
-}
-@keyframes hud-spin-rev {
-  to { transform: rotate(-360deg); }
-}
+@keyframes hud-spin-slow { to { transform: rotate(360deg); } }
+@keyframes hud-spin-rev { to { transform: rotate(-360deg); } }
 @keyframes hud-bob {
   0%, 100% { transform: translateY(-6px); }
   50% { transform: translateY(6px); }
@@ -287,6 +318,23 @@
   73% { opacity: 0.85; }
   74% { opacity: 1; }
 }
+@keyframes hud-sweep {
+  0% { background-position: 250% 0; }
+  100% { background-position: -50% 0; }
+}
+@keyframes hud-noise {
+  0% { transform: translate(0,0); }
+  50% { transform: translate(-1px,1px); }
+  100% { transform: translate(1px,-1px); }
+}
+@keyframes hud-breathe {
+  0%, 100% { box-shadow: 0 0 12px hsl(var(--mood) / 0.35), 0 0 32px hsl(var(--mood) / 0.15); }
+  50% { box-shadow: 0 0 22px hsl(var(--mood) / 0.7), 0 0 60px hsl(var(--mood) / 0.3); }
+}
+@keyframes hud-rise {
+  0% { opacity: 0; transform: translateY(6px); filter: blur(4px); }
+  100% { opacity: 1; transform: translateY(0); filter: blur(0); }
+}
 
 .animate-hud-pulse { animation: hud-pulse 2.4s ease-in-out infinite; }
 .animate-hud-spin-slow { animation: hud-spin-slow 18s linear infinite; }
@@ -294,3 +342,13 @@
 .animate-hud-bob { animation: hud-bob 5s ease-in-out infinite; }
 .animate-hud-scan { animation: hud-scan 3.6s ease-in-out infinite; }
 .animate-hud-flicker { animation: hud-flicker 6s linear infinite; }
+.animate-hud-breathe { animation: hud-breathe 3.4s ease-in-out infinite; }
+.animate-hud-rise { animation: hud-rise 0.45s cubic-bezier(.2,.7,.2,1) both; }
+
+/* Frosted glass panels */
+@utility hud-glass {
+  background: linear-gradient(140deg, hsl(var(--card) / 0.55), hsl(var(--background) / 0.7));
+  border: 1px solid hsl(var(--hud) / 0.22);
+  backdrop-filter: blur(14px) saturate(140%);
+  -webkit-backdrop-filter: blur(14px) saturate(140%);
+}

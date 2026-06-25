@@ -2,6 +2,7 @@ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { JarvisOrb } from "@/components/aria/JarvisOrb";
 import { supabase } from "@/integrations/supabase/client";
+import { motion } from "motion/react";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -54,7 +55,11 @@ function Landing() {
 
       {/* Hero */}
       <section className="mx-auto mt-6 grid max-w-6xl gap-10 px-6 pb-24 sm:px-10 md:grid-cols-[1.1fr_1fr] md:items-center md:gap-16 md:pt-16">
-        <div>
+        <motion.div
+          initial={{ opacity: 0, y: 14, filter: "blur(8px)" }}
+          animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
+          transition={{ duration: 0.7, ease: [0.2, 0.7, 0.2, 1] }}
+        >
           <p className="font-mono text-xs uppercase tracking-[0.4em] text-primary/70">
             Project / Personal AI
           </p>
@@ -68,7 +73,15 @@ function Landing() {
             remembers what matters — wrapped in an Iron-Man-style HUD you can theme to your taste.
           </p>
 
-          <ul className="mt-8 grid max-w-md grid-cols-2 gap-2 font-mono text-[11px] uppercase tracking-widest text-muted-foreground">
+          <motion.ul
+            initial="hidden"
+            animate="visible"
+            variants={{
+              hidden: {},
+              visible: { transition: { staggerChildren: 0.06, delayChildren: 0.3 } },
+            }}
+            className="mt-8 grid max-w-md grid-cols-2 gap-2 font-mono text-[11px] uppercase tracking-widest text-muted-foreground"
+          >
             {[
               "Voice in / out",
               "JARVIS · FRIDAY · GIDEON",
@@ -77,42 +90,56 @@ function Landing() {
               "Long-term memory",
               "Mood-reactive HUD",
             ].map((f) => (
-              <li
+              <motion.li
                 key={f}
-                className="rounded border border-primary/20 bg-card/40 px-2 py-1.5 text-primary/80"
+                variants={{
+                  hidden: { opacity: 0, y: 8, filter: "blur(4px)" },
+                  visible: { opacity: 1, y: 0, filter: "blur(0px)" },
+                }}
+                className="rounded border border-primary/20 bg-card/40 px-2 py-1.5 text-primary/80 backdrop-blur-sm"
               >
                 · {f}
-              </li>
+              </motion.li>
             ))}
-          </ul>
+          </motion.ul>
 
           <div className="mt-10 flex flex-wrap gap-3">
-            <button
+            <motion.button
+              whileHover={{ scale: 1.04 }}
+              whileTap={{ scale: 0.96 }}
               onClick={() => navigate({ to: authed ? "/chat" : "/auth" })}
-              className="hud-corner rounded-md border border-primary bg-primary/15 px-6 py-3 font-display text-sm uppercase tracking-[0.3em] text-primary transition hover:bg-primary/25 hud-glow"
+              className="hud-corner animate-hud-breathe rounded-md border border-primary bg-primary/15 px-6 py-3 font-display text-sm uppercase tracking-[0.3em] text-primary transition hover:bg-primary/25"
             >
               {authed ? "Resume Session" : "Initialize ARIA"}
-            </button>
+            </motion.button>
             <a
               href="#features"
-              className="rounded-md border border-border bg-card px-6 py-3 font-display text-sm uppercase tracking-[0.3em] text-foreground transition hover:bg-secondary"
+              className="rounded-md border border-border bg-card/60 px-6 py-3 font-display text-sm uppercase tracking-[0.3em] text-foreground backdrop-blur-sm transition hover:bg-secondary"
             >
               How it works
             </a>
           </div>
-        </div>
+        </motion.div>
 
         {/* Orb */}
-        <div className="relative mx-auto grid place-items-center">
-          <div className="pointer-events-none absolute inset-0 -z-10">
-            <div className="absolute left-1/2 top-1/2 h-[420px] w-[420px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-primary/10 blur-3xl" />
-          </div>
+        <motion.div
+          initial={{ opacity: 0, scale: 0.85 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ duration: 1.1, ease: [0.2, 0.7, 0.2, 1] }}
+          className="relative mx-auto grid place-items-center"
+        >
           <JarvisOrb state="idle" size={360} />
-          <div className="mt-6 text-center font-mono text-[11px] uppercase tracking-[0.35em] text-primary/70">
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.6 }}
+            className="mt-6 text-center font-mono text-[11px] uppercase tracking-[0.35em] text-primary/70"
+          >
             Standby · Awaiting Command
-          </div>
-        </div>
+          </motion.div>
+        </motion.div>
       </section>
+
 
       {/* Feature grid */}
       <section id="features" className="mx-auto max-w-6xl px-6 pb-24 sm:px-10">

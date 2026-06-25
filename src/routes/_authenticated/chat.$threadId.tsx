@@ -15,6 +15,7 @@ import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import { useTheme } from "@/components/aria/ThemeProvider";
 import { toast } from "sonner";
+import { motion, AnimatePresence } from "motion/react";
 
 export const Route = createFileRoute("/_authenticated/chat/$threadId")({
   ssr: false,
@@ -247,35 +248,89 @@ function ChatRuntime({
       <div ref={scrollRef} className="flex-1 overflow-y-auto px-4 py-5">
         <div className="mx-auto max-w-3xl space-y-5">
           {messages.length === 0 && !isLoading && (
-            <div className="grid place-items-center py-8 text-center">
-              <JarvisOrb state="idle" size={200} />
-              <p className="mt-6 font-mono text-[11px] uppercase tracking-[0.4em] text-primary/70">
+            <motion.div
+              initial={{ opacity: 0, scale: 0.92 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ duration: 0.6, ease: [0.2, 0.7, 0.2, 1] }}
+              className="grid place-items-center py-6 text-center"
+            >
+              <JarvisOrb state="idle" size={240} />
+              <motion.p
+                initial={{ opacity: 0, y: 8 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.35 }}
+                className="mt-6 font-mono text-[11px] uppercase tracking-[0.4em] text-primary/80 hud-text-glow"
+              >
                 Awaiting Command
-              </p>
-              <p className="mt-3 max-w-xs text-sm text-muted-foreground">
+              </motion.p>
+              <motion.p
+                initial={{ opacity: 0, y: 8 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.5 }}
+                className="mt-3 max-w-xs text-sm text-muted-foreground"
+              >
                 Tap the mic, or type. Toggle the speaker icon for hands-free voice mode.
-              </p>
-            </div>
+              </motion.p>
+            </motion.div>
           )}
 
-          {messages.map((m) => (
-            <MessageBubble key={m.id} message={m} assistantName={assistantName} />
-          ))}
+          <AnimatePresence initial={false}>
+            {messages.map((m) => (
+              <motion.div
+                key={m.id}
+                layout
+                initial={{ opacity: 0, y: 10, filter: "blur(6px)" }}
+                animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.35, ease: [0.2, 0.7, 0.2, 1] }}
+              >
+                <MessageBubble message={m} assistantName={assistantName} />
+              </motion.div>
+            ))}
+          </AnimatePresence>
 
           {isLoading && messages[messages.length - 1]?.role === "user" && (
-            <div className="flex items-center gap-3 text-primary/80">
-              <div className="h-2 w-2 animate-pulse rounded-full bg-primary" />
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              className="flex items-center gap-3 text-primary/80"
+            >
+              <span className="relative flex h-2 w-2">
+                <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-primary opacity-75" />
+                <span className="relative inline-flex h-2 w-2 rounded-full bg-primary" />
+              </span>
               <span className="font-mono text-[11px] uppercase tracking-widest">Computing…</span>
-            </div>
+              <span className="ml-2 flex gap-1">
+                {[0, 1, 2].map((i) => (
+                  <motion.span
+                    key={i}
+                    className="h-1.5 w-1.5 rounded-full bg-primary/70"
+                    animate={{ y: [0, -4, 0], opacity: [0.4, 1, 0.4] }}
+                    transition={{ duration: 0.9, repeat: Infinity, delay: i * 0.12 }}
+                  />
+                ))}
+              </span>
+            </motion.div>
           )}
         </div>
       </div>
 
+
       {/* Composer */}
-      <div className="border-t border-primary/15 bg-background/85 px-3 py-3 backdrop-blur">
+      <div className="relative border-t border-primary/15 bg-background/70 px-3 py-3 backdrop-blur-xl">
+        <div className="pointer-events-none absolute inset-x-0 -top-px h-px bg-gradient-to-r from-transparent via-primary/60 to-transparent" />
         <form onSubmit={handleSend} className="mx-auto flex max-w-3xl items-end gap-2">
           <VoiceMic onTranscript={handleTranscript} disabled={isLoading} />
-          <div className="hud-corner relative flex-1 rounded-xl border border-primary/30 bg-card/60">
+          <motion.div
+            layout
+            className="hud-corner relative flex-1 rounded-xl border border-primary/30 bg-card/60"
+            animate={{
+              boxShadow: input
+                ? "0 0 0 1px hsl(var(--primary) / 0.55), 0 0 22px hsl(var(--primary) / 0.25)"
+                : "0 0 0 1px hsl(var(--primary) / 0.15), 0 0 0 transparent",
+            }}
+            transition={{ duration: 0.25 }}
+          >
             <textarea
               value={input}
               onChange={(e) => setInput(e.target.value)}
@@ -290,25 +345,30 @@ function ChatRuntime({
               className="block w-full resize-none bg-transparent px-3 py-3 text-foreground placeholder:text-muted-foreground/60 focus:outline-none"
               style={{ minHeight: 48, maxHeight: 160 }}
             />
-          </div>
+          </motion.div>
           {isLoading ? (
-            <button
+            <motion.button
               type="button"
               onClick={() => stop()}
+              whileTap={{ scale: 0.9 }}
               className="grid h-12 w-12 shrink-0 place-items-center rounded-full border border-destructive/40 bg-destructive/15 text-destructive transition"
               aria-label="Stop"
             >
               <Square className="h-4 w-4" />
-            </button>
+            </motion.button>
           ) : (
-            <button
+            <motion.button
               type="submit"
               disabled={!input.trim()}
-              className="grid h-12 w-12 shrink-0 place-items-center rounded-full border border-primary bg-primary/15 text-primary transition hover:bg-primary/25 disabled:opacity-40 hud-glow"
+              whileTap={{ scale: 0.9 }}
+              whileHover={{ scale: 1.05 }}
+              className={`grid h-12 w-12 shrink-0 place-items-center rounded-full border border-primary bg-primary/15 text-primary transition disabled:opacity-40 ${
+                input.trim() ? "animate-hud-breathe" : ""
+              }`}
               aria-label="Send"
             >
               <Send className="h-4 w-4" />
-            </button>
+            </motion.button>
           )}
         </form>
       </div>
@@ -325,7 +385,15 @@ function MessageBubble({ message, assistantName }: { message: UIMessage; assista
   if (isUser) {
     return (
       <div className="flex justify-end">
-        <div className="max-w-[85%] rounded-2xl rounded-tr-sm border border-primary/40 bg-primary px-3.5 py-2.5 text-primary-foreground">
+        <div
+          className="max-w-[85%] rounded-2xl rounded-tr-sm border border-primary/40 px-3.5 py-2.5 text-primary-foreground"
+          style={{
+            background:
+              "linear-gradient(135deg, hsl(var(--primary)) 0%, hsl(var(--primary) / 0.85) 100%)",
+            boxShadow:
+              "0 0 0 1px hsl(var(--primary) / 0.4), 0 6px 24px -8px hsl(var(--primary) / 0.5)",
+          }}
+        >
           <p className="whitespace-pre-wrap text-sm leading-relaxed">{text}</p>
         </div>
       </div>
@@ -334,8 +402,8 @@ function MessageBubble({ message, assistantName }: { message: UIMessage; assista
 
   return (
     <div className="flex gap-2.5">
-      <div className="grid h-7 w-7 shrink-0 place-items-center rounded-full border border-primary/40 bg-card">
-        <div className="h-2 w-2 rounded-full bg-primary shadow-[0_0_8px_hsl(var(--primary))]" />
+      <div className="grid h-7 w-7 shrink-0 place-items-center rounded-full border border-primary/40 bg-card animate-hud-breathe">
+        <div className="h-2 w-2 rounded-full bg-primary shadow-[0_0_10px_hsl(var(--primary))]" />
       </div>
       <div className="min-w-0 flex-1">
         <div className="mb-1 font-display text-[10px] uppercase tracking-widest text-primary/80">
