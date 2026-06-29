@@ -18,6 +18,8 @@ import { toast } from "sonner";
 import { motion, AnimatePresence } from "motion/react";
 import { useServerFn as _useServerFn2 } from "@tanstack/react-start";
 import { recordUpload } from "@/lib/aria/media.functions";
+import { SpotifyHud } from "@/components/aria/SpotifyHud";
+import { useDropzone } from "react-dropzone";
 
 export const Route = createFileRoute("/_authenticated/chat/$threadId")({
   ssr: false,
