@@ -588,6 +588,11 @@ function MessageBubble({ message, assistantName }: { message: UIMessage; assista
     );
   }
 
+  // Tool invocations the model made during this assistant turn.
+  const toolParts = message.parts.filter(
+    (p) => typeof p.type === "string" && p.type.startsWith("tool-"),
+  ) as Array<{ type: string; state?: string; input?: unknown; output?: unknown }>;
+
   return (
     <div className="flex gap-2.5">
       <div className="grid h-7 w-7 shrink-0 place-items-center rounded-full border border-primary/40 bg-card animate-hud-breathe">
@@ -597,10 +602,27 @@ function MessageBubble({ message, assistantName }: { message: UIMessage; assista
         <div className="mb-1 font-display text-[10px] uppercase tracking-widest text-primary/80">
           {assistantName}
         </div>
+        {toolParts.map((tp, i) => (
+          <ToolChip key={i} part={tp} />
+        ))}
         <div className="prose prose-invert prose-sm max-w-none break-words text-foreground/90 [&_a]:text-primary [&_code]:rounded [&_code]:bg-card [&_code]:px-1 [&_code]:py-0.5 [&_pre]:bg-card [&_pre]:border [&_pre]:border-primary/20">
           <ReactMarkdown remarkPlugins={[remarkGfm]}>{text}</ReactMarkdown>
         </div>
       </div>
+    </div>
+  );
+}
+
+function ToolChip({ part }: { part: { type: string; state?: string; output?: unknown } }) {
+  const name = part.type.replace(/^tool-/, "");
+  const label = name.replace(/_/g, " ");
+  const running = part.state === "input-streaming" || part.state === "input-available";
+  return (
+    <div className="mb-2 inline-flex items-center gap-1.5 rounded-full border border-accent/40 bg-accent/10 px-2.5 py-0.5 font-mono text-[10px] uppercase tracking-widest text-accent">
+      <span
+        className={`inline-block h-1.5 w-1.5 rounded-full ${running ? "animate-pulse bg-accent" : "bg-emerald-400"}`}
+      />
+      {running ? "calling" : "used"} · {label}
     </div>
   );
 }
