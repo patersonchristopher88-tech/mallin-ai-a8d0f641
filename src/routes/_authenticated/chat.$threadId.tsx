@@ -64,6 +64,9 @@ function ThreadView() {
       threadId={threadId}
       initialMessages={initialMessages}
       assistantName={profile.data?.assistant_name ?? "ARIA"}
+      voiceProvider={(profile.data?.voice_provider ?? "lovable") as "lovable" | "elevenlabs"}
+      voiceId={profile.data?.voice_id ?? "alloy"}
+      elevenVoiceId={profile.data?.elevenlabs_voice_id ?? null}
       onMoodChange={setMood}
     />
   );
@@ -73,11 +76,17 @@ function ChatRuntime({
   threadId,
   initialMessages,
   assistantName,
+  voiceProvider,
+  voiceId,
+  elevenVoiceId,
   onMoodChange,
 }: {
   threadId: string;
   initialMessages: UIMessage[];
   assistantName: string;
+  voiceProvider: "lovable" | "elevenlabs";
+  voiceId: string;
+  elevenVoiceId: string | null;
   onMoodChange: (m: "idle" | "thinking" | "speaking") => void;
 }) {
   const [input, setInput] = useState("");
@@ -161,13 +170,19 @@ function ChatRuntime({
     try {
       const { data: sess } = await supabase.auth.getSession();
       const token = sess.session?.access_token;
-      const res = await fetch("/api/tts/lovable", {
+      const endpoint =
+        voiceProvider === "elevenlabs" ? "/api/tts/elevenlabs" : "/api/tts/lovable";
+      const body =
+        voiceProvider === "elevenlabs"
+          ? { text, voiceId: elevenVoiceId || undefined }
+          : { text, voice: voiceId };
+      const res = await fetch(endpoint, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
           ...(token ? { Authorization: `Bearer ${token}` } : {}),
         },
-        body: JSON.stringify({ text }),
+        body: JSON.stringify(body),
       });
       if (!res.ok) throw new Error(await res.text());
       const blob = await res.blob();
