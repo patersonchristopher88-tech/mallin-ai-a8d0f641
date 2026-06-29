@@ -7,6 +7,7 @@ import { THEME_PRESETS } from "@/lib/aria/themes";
 import { useTheme } from "@/components/aria/ThemeProvider";
 import { useEffect, useState } from "react";
 import { JarvisOrb } from "@/components/aria/JarvisOrb";
+import { SpotifyConnectCard } from "@/components/aria/SpotifyConnectCard";
 import { toast } from "sonner";
 import { ArrowLeft } from "lucide-react";
 
@@ -24,7 +25,9 @@ function SettingsPage() {
 
   const profile = useQuery({ queryKey: ["profile"], queryFn: () => profileFn() });
 
-  const [tab, setTab] = useState<"assistant" | "appearance" | "voice" | "account">("assistant");
+  const [tab, setTab] = useState<"assistant" | "appearance" | "voice" | "integrations" | "account">(
+    "assistant",
+  );
   const [draft, setDraft] = useState<Record<string, unknown>>({});
 
   useEffect(() => {
@@ -86,6 +89,7 @@ function SettingsPage() {
     { key: "assistant", label: "Assistant" },
     { key: "appearance", label: "Appearance" },
     { key: "voice", label: "Voice" },
+    { key: "integrations", label: "Integrations" },
     { key: "account", label: "Account" },
   ];
 
@@ -272,26 +276,97 @@ function SettingsPage() {
         {tab === "voice" && (
           <div className="space-y-6">
             <Field label="Voice provider">
-              <div className="text-sm text-muted-foreground">
-                Voice in/out, ElevenLabs character presets, and voice cloning arrive in the next update.
-                Defaults are pre-configured so it works the moment voice ships.
+              <div className="grid gap-2 sm:grid-cols-2">
+                {[
+                  { k: "lovable", n: "Lovable AI · gpt-4o-mini-tts", d: "Built-in, fast, 10 voices." },
+                  { k: "elevenlabs", n: "ElevenLabs · turbo v2.5", d: "Cinematic, JARVIS-grade." },
+                ].map((p) => {
+                  const active = ((merged.voice_provider as string) ?? "lovable") === p.k;
+                  return (
+                    <button
+                      key={p.k}
+                      onClick={() => update({ voice_provider: p.k })}
+                      className={`hud-corner rounded-lg border p-3 text-left transition ${
+                        active
+                          ? "border-primary bg-primary/10"
+                          : "border-border bg-card hover:border-primary/40"
+                      }`}
+                    >
+                      <div className="font-display text-xs uppercase tracking-widest text-primary">
+                        {p.n}
+                      </div>
+                      <div className="mt-1 text-xs text-muted-foreground">{p.d}</div>
+                    </button>
+                  );
+                })}
               </div>
             </Field>
-            <Field label="Default voice">
-              <select
-                value={(merged.voice_id as string) ?? "alloy"}
-                onChange={(e) => update({ voice_id: e.target.value })}
-                className="w-full max-w-sm rounded border border-primary/30 bg-background/60 px-3 py-2 text-foreground focus:border-primary focus:outline-none"
-              >
-                {["alloy", "ash", "ballad", "coral", "echo", "sage", "shimmer", "verse", "marin", "cedar"].map(
-                  (v) => (
-                    <option key={v} value={v}>
-                      {v}
-                    </option>
-                  ),
-                )}
-              </select>
+
+            {((merged.voice_provider as string) ?? "lovable") === "lovable" ? (
+              <Field label="Lovable voice">
+                <select
+                  value={(merged.voice_id as string) ?? "alloy"}
+                  onChange={(e) => update({ voice_id: e.target.value })}
+                  className="w-full max-w-sm rounded border border-primary/30 bg-background/60 px-3 py-2 text-foreground focus:border-primary focus:outline-none"
+                >
+                  {["alloy", "ash", "ballad", "coral", "echo", "sage", "shimmer", "verse", "marin", "cedar"].map(
+                    (v) => (
+                      <option key={v} value={v}>
+                        {v}
+                      </option>
+                    ),
+                  )}
+                </select>
+              </Field>
+            ) : (
+              <Field label="ElevenLabs voice">
+                <select
+                  value={(merged.elevenlabs_voice_id as string) ?? "JBFqnCBsd6RMkjVDRZzb"}
+                  onChange={(e) => update({ elevenlabs_voice_id: e.target.value })}
+                  className="w-full max-w-sm rounded border border-primary/30 bg-background/60 px-3 py-2 text-foreground focus:border-primary focus:outline-none"
+                >
+                  <option value="JBFqnCBsd6RMkjVDRZzb">George · refined British (JARVIS)</option>
+                  <option value="CwhRBWXzGAHq8TQ4Fs17">Roger · warm baritone</option>
+                  <option value="onwK4e9ZLuTAKqWW03F9">Daniel · authoritative</option>
+                  <option value="EXAVITQu4vr4xnSDxMaL">Sarah · friendly female</option>
+                  <option value="cgSgspJ2msm6clMCkdW9">Jessica · expressive female</option>
+                  <option value="N2lVS1w4EtoT3dr4eOWO">Callum · cinematic</option>
+                  <option value="iP95p4xoKVk53GoZ742B">Chris · casual male</option>
+                  <option value="kPtEHAvRnjUJFv7SK9WI">Glitch · synthetic</option>
+                </select>
+                <p className="mt-2 text-xs text-muted-foreground">
+                  Or paste any voice ID from the ElevenLabs Voice Library:
+                </p>
+                <input
+                  type="text"
+                  placeholder="Custom voice ID"
+                  value={(merged.elevenlabs_voice_id as string) ?? ""}
+                  onChange={(e) => update({ elevenlabs_voice_id: e.target.value })}
+                  className="mt-1 w-full max-w-sm rounded border border-primary/30 bg-background/60 px-3 py-2 font-mono text-xs text-foreground focus:border-primary focus:outline-none"
+                />
+              </Field>
+            )}
+
+            <Field label="Spoken replies">
+              <label className="inline-flex items-center gap-2 text-sm">
+                <input
+                  type="checkbox"
+                  checked={(merged.spoken_replies as boolean) ?? false}
+                  onChange={(e) => update({ spoken_replies: e.target.checked })}
+                  className="h-4 w-4 accent-primary"
+                />
+                Auto-speak every assistant message
+              </label>
             </Field>
+          </div>
+        )}
+
+        {tab === "integrations" && (
+          <div className="space-y-4">
+            <SpotifyConnectCard />
+            <div className="text-xs text-muted-foreground">
+              More connectors (Google Calendar, Gmail, Notion, Linear) arrive in the next tick.
+            </div>
           </div>
         )}
 

@@ -1,8 +1,9 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { convertToModelMessages, streamText, type UIMessage } from "ai";
+import { convertToModelMessages, streamText, stepCountIs, type UIMessage } from "ai";
 import { createClient } from "@supabase/supabase-js";
 import { createLovableAiGatewayProvider } from "@/lib/ai-gateway.server";
 import { buildSystemPrompt, type PersonaKey } from "@/lib/aria/personas";
+import { buildAriaTools } from "@/lib/aria/tools.server";
 
 type ChatRequestBody = {
   messages?: UIMessage[];
@@ -82,6 +83,8 @@ export const Route = createFileRoute("/api/chat")({
             model,
             system: systemPrompt,
             messages: await convertToModelMessages(messages),
+            tools: buildAriaTools({ userId }),
+            stopWhen: stepCountIs(6),
           });
 
           return result.toUIMessageStreamResponse({
