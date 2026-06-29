@@ -280,8 +280,28 @@ function ChatRuntime({
     }
   }
 
+  const dropzone = useDropzone({
+    noClick: true,
+    noKeyboard: true,
+    onDrop: (files) => {
+      const dt = new DataTransfer();
+      files.forEach((f) => dt.items.add(f));
+      void handleFiles(dt.files);
+    },
+  });
+
   return (
-    <div className="flex min-h-0 flex-1 flex-col">
+    <div
+      {...dropzone.getRootProps({ className: "flex min-h-0 flex-1 flex-col relative" })}
+    >
+      <input {...dropzone.getInputProps()} />
+      {dropzone.isDragActive && (
+        <div className="pointer-events-none absolute inset-0 z-30 grid place-items-center bg-primary/10 backdrop-blur-sm">
+          <div className="hud-corner rounded-xl border-2 border-dashed border-primary/60 bg-card/80 px-6 py-4 font-display text-xs uppercase tracking-widest text-primary hud-text-glow">
+            Drop to attach
+          </div>
+        </div>
+      )}
       {/* Compact mobile HUD header */}
       <div className="sticky top-0 z-10 flex items-center justify-between border-b border-primary/15 bg-background/85 px-4 py-2.5 backdrop-blur">
         <ThreadDrawer
@@ -400,6 +420,7 @@ function ChatRuntime({
 
       {/* Composer */}
       <div className="relative border-t border-primary/15 bg-background/70 px-3 py-3 backdrop-blur-xl">
+        <SpotifyHud />
         <div className="pointer-events-none absolute inset-x-0 -top-px h-px bg-gradient-to-r from-transparent via-primary/60 to-transparent" />
         <input
           ref={fileInputRef}
