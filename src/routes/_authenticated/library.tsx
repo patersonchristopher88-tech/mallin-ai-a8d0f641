@@ -60,12 +60,12 @@ function LibraryPage() {
           <Grid
             isLoading={gens.isLoading}
             empty={(gens.data?.length ?? 0) === 0}
-            emptyHint="Head to Studio to create your first image."
+            emptyHint="Head to Studio to create your first image or video."
             items={(gens.data ?? []).map((g) => ({
               id: g.id,
               url: g.url,
               label: g.prompt,
-              kind: "image" as const,
+              kind: g.kind === "video" ? ("video" as const) : ("image" as const),
             }))}
           />
         ) : (
@@ -95,7 +95,7 @@ function Grid({
   isLoading: boolean;
   empty: boolean;
   emptyHint: string;
-  items: Array<{ id: string; url: string; label: string; kind: "image" | "file" }>;
+  items: Array<{ id: string; url: string; label: string; kind: "image" | "file" | "video" }>;
 }) {
   if (isLoading) {
     return (
@@ -129,9 +129,27 @@ function Grid({
         >
           {it.kind === "image" ? (
             <img src={it.url} alt={it.label} className="aspect-square w-full object-cover" />
+          ) : it.kind === "video" ? (
+            <video
+              src={it.url}
+              className="aspect-square w-full object-cover"
+              muted
+              loop
+              playsInline
+              onMouseEnter={(e) => e.currentTarget.play().catch(() => {})}
+              onMouseLeave={(e) => {
+                e.currentTarget.pause();
+                e.currentTarget.currentTime = 0;
+              }}
+            />
           ) : (
             <div className="grid aspect-square w-full place-items-center bg-card/80">
               <FileText className="h-10 w-10 text-primary/70" />
+            </div>
+          )}
+          {it.kind === "video" && (
+            <div className="pointer-events-none absolute left-1.5 top-1.5 rounded-md border border-accent/40 bg-background/80 px-1.5 py-0.5 font-mono text-[8px] uppercase tracking-widest text-accent">
+              ▶ Video
             </div>
           )}
           <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-background/95 to-transparent p-2">

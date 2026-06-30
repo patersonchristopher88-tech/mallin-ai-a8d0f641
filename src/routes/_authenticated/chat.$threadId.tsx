@@ -10,7 +10,7 @@ import { ThreadDrawer } from "@/components/aria/ThreadDrawer";
 import { VoiceMic } from "@/components/aria/VoiceMic";
 import { supabase } from "@/integrations/supabase/client";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { Send, Square, Menu, Volume2, VolumeX, Paperclip, X, Loader2 } from "lucide-react";
+import { Send, Square, Menu, Volume2, VolumeX, Paperclip, X } from "lucide-react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import { useTheme } from "@/components/aria/ThemeProvider";
@@ -18,6 +18,8 @@ import { toast } from "sonner";
 import { motion, AnimatePresence } from "motion/react";
 import { useServerFn as _useServerFn2 } from "@tanstack/react-start";
 import { recordUpload } from "@/lib/aria/media.functions";
+import { PersonaSwitcher } from "@/components/aria/PersonaSwitcher";
+import type { PersonaKey } from "@/lib/aria/personas";
 
 export const Route = createFileRoute("/_authenticated/chat/$threadId")({
   ssr: false,
@@ -62,6 +64,7 @@ function ThreadView() {
       threadId={threadId}
       initialMessages={initialMessages}
       assistantName={profile.data?.assistant_name ?? "ARIA"}
+      persona={((profile.data as { persona?: string } | null)?.persona as PersonaKey) ?? "jarvis"}
       onMoodChange={setMood}
     />
   );
@@ -71,17 +74,19 @@ function ChatRuntime({
   threadId,
   initialMessages,
   assistantName,
+  persona,
   onMoodChange,
 }: {
   threadId: string;
   initialMessages: UIMessage[];
   assistantName: string;
+  persona: PersonaKey;
   onMoodChange: (m: "idle" | "thinking" | "speaking") => void;
 }) {
   const [input, setInput] = useState("");
   const [voiceMode, setVoiceMode] = useState(false);
   const [attachments, setAttachments] = useState<
-    Array<{ url: string; mediaType: string; name: string; uploading?: boolean }>
+    Array<{ url: string; mediaType: string; name: string; uploading?: boolean; progress?: number }>
   >([]);
   const scrollRef = useRef<HTMLDivElement | null>(null);
   const lastSpokenIdRef = useRef<string | null>(null);
@@ -216,53 +221,85 @@ function ChatRuntime({
   async function handleFiles(files: FileList | null) {
     if (!files || !files.length) return;
     const list = Array.from(files).slice(0, 6);
-    for (const file of list) {
-      const ext = file.name.split(".").pop() ?? "bin";
-      const placeholder = {
-        url: "",
-        mediaType: file.type || "application/octet-stream",
-        name: file.name,
-        uploading: true,
-      };
-      setAttachments((arr) => [...arr, placeholder]);
-      try {
-        const { data: sess } = await supabase.auth.getSession();
-        const userId = sess.session?.user.id;
-        if (!userId) throw new Error("Not signed in");
-        const path = `${userId}/${Date.now()}-${crypto.randomUUID().slice(0, 8)}.${ext}`;
-        const { error: upErr } = await supabase.storage
-          .from("aria-uploads")
-          .upload(path, file, { contentType: file.type, upsert: false });
-        if (upErr) throw upErr;
-        const { data: signed, error: signErr } = await supabase.storage
-          .from("aria-uploads")
-          .createSignedUrl(path, 60 * 60 * 24);
-        if (signErr || !signed?.signedUrl) throw signErr ?? new Error("Sign failed");
-        await recordUploadFn({
-          data: {
-            path,
-            name: file.name,
-            mime: file.type || "application/octet-stream",
-            size: file.size,
-            threadId,
-          },
-        }).catch(() => {});
-        setAttachments((arr) =>
-          arr.map((a) =>
-            a === placeholder
-              ? {
-                  url: signed.signedUrl,
-                  mediaType: file.type || "application/octet-stream",
-                  name: file.name,
-                }
-              : a,
-          ),
-        );
-      } catch (err) {
-        toast.error(err instanceof Error ? err.message : "Upload failed");
-        setAttachments((arr) => arr.filter((a) => a !== placeholder));
-      }
-    }
+    const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL as string;
+
+    await Promise.all(
+      list.map(async (file) => {
+        const ext = file.name.split(".").pop() ?? "bin";
+        const placeholder = {
+          url: "",
+          mediaType: file.type || "application/octet-stream",
+          name: file.name,
+          uploading: true,
+          progress: 0,
+        };
+        setAttachments((arr) => [...arr, placeholder]);
+        const setProg = (p: number) =>
+          setAttachments((arr) =>
+            arr.map((a) => (a === placeholder ? { ...a, progress: p } : a)),
+          );
+        try {
+          const { data: sess } = await supabase.auth.getSession();
+          const token = sess.session?.access_token;
+          const userId = sess.session?.user.id;
+          if (!userId || !token) throw new Error("Not signed in");
+          const path = `${userId}/${Date.now()}-${crypto.randomUUID().slice(0, 8)}.${ext}`;
+          // Direct REST upload so we get real progress events.
+          await new Promise<void>((resolve, reject) => {
+            const xhr = new XMLHttpRequest();
+            xhr.open(
+              "POST",
+              `${SUPABASE_URL}/storage/v1/object/aria-uploads/${path}`,
+              true,
+            );
+            xhr.setRequestHeader("Authorization", `Bearer ${token}`);
+            xhr.setRequestHeader(
+              "Content-Type",
+              file.type || "application/octet-stream",
+            );
+            xhr.setRequestHeader("x-upsert", "false");
+            xhr.upload.onprogress = (e) => {
+              if (e.lengthComputable) setProg(Math.round((e.loaded / e.total) * 95));
+            };
+            xhr.onload = () =>
+              xhr.status >= 200 && xhr.status < 300
+                ? resolve()
+                : reject(new Error(xhr.responseText || `HTTP ${xhr.status}`));
+            xhr.onerror = () => reject(new Error("Network error"));
+            xhr.send(file);
+          });
+          setProg(97);
+          const { data: signed, error: signErr } = await supabase.storage
+            .from("aria-uploads")
+            .createSignedUrl(path, 60 * 60 * 24);
+          if (signErr || !signed?.signedUrl) throw signErr ?? new Error("Sign failed");
+          await recordUploadFn({
+            data: {
+              path,
+              name: file.name,
+              mime: file.type || "application/octet-stream",
+              size: file.size,
+              threadId,
+            },
+          }).catch(() => {});
+          setAttachments((arr) =>
+            arr.map((a) =>
+              a === placeholder
+                ? {
+                    url: signed.signedUrl,
+                    mediaType: file.type || "application/octet-stream",
+                    name: file.name,
+                  }
+                : a,
+            ),
+          );
+          navigator.vibrate?.(6);
+        } catch (err) {
+          toast.error(`${file.name}: ${err instanceof Error ? err.message : "Upload failed"}`);
+          setAttachments((arr) => arr.filter((a) => a !== placeholder));
+        }
+      }),
+    );
   }
 
   function removeAttachment(i: number) {
@@ -297,14 +334,18 @@ function ChatRuntime({
           <div className="grid h-8 w-8 shrink-0 place-items-center">
             <JarvisOrb state={orbState} size={32} />
           </div>
-          <div className="min-w-0">
-            <div className="truncate font-display text-xs uppercase tracking-[0.25em] text-primary hud-text-glow">
-              {assistantName}
+          {isLoading ? (
+            <div className="min-w-0">
+              <div className="truncate font-display text-xs uppercase tracking-[0.25em] text-primary hud-text-glow">
+                {assistantName}
+              </div>
+              <div className="font-mono text-[9px] uppercase tracking-widest text-muted-foreground">
+                Thinking…
+              </div>
             </div>
-            <div className="font-mono text-[9px] uppercase tracking-widest text-muted-foreground">
-              {isLoading ? "Thinking…" : voiceMode ? "Voice · Live" : "Online"}
-            </div>
-          </div>
+          ) : (
+            <PersonaSwitcher current={persona} assistantName={assistantName} />
+          )}
         </div>
         <button
           onClick={() => {
@@ -426,8 +467,18 @@ function ChatRuntime({
                   <Paperclip className="h-5 w-5 text-primary/70" />
                 )}
                 {a.uploading && (
-                  <div className="absolute inset-0 grid place-items-center bg-background/70">
-                    <Loader2 className="h-4 w-4 animate-spin text-primary" />
+                  <div className="absolute inset-0 flex flex-col items-center justify-end gap-0.5 bg-background/75 pb-1">
+                    <span className="font-mono text-[9px] tabular-nums text-primary">
+                      {a.progress ?? 0}%
+                    </span>
+                    <div className="h-0.5 w-12 overflow-hidden rounded-full bg-primary/20">
+                      <motion.div
+                        className="h-full bg-primary"
+                        animate={{ width: `${a.progress ?? 0}%` }}
+                        transition={{ duration: 0.18 }}
+                        style={{ boxShadow: "0 0 6px hsl(var(--primary))" }}
+                      />
+                    </div>
                   </div>
                 )}
                 <button
