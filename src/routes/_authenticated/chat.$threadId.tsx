@@ -10,7 +10,7 @@ import { ThreadDrawer } from "@/components/aria/ThreadDrawer";
 import { VoiceMic } from "@/components/aria/VoiceMic";
 import { supabase } from "@/integrations/supabase/client";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { Send, Square, Menu, Volume2, VolumeX, Paperclip, X, Loader2 } from "lucide-react";
+import { Send, Square, Menu, Volume2, VolumeX, Paperclip, X } from "lucide-react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import { useTheme } from "@/components/aria/ThemeProvider";
