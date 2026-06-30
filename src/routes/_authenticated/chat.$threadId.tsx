@@ -18,8 +18,6 @@ import { toast } from "sonner";
 import { motion, AnimatePresence } from "motion/react";
 import { useServerFn as _useServerFn2 } from "@tanstack/react-start";
 import { recordUpload } from "@/lib/aria/media.functions";
-import { SpotifyHud } from "@/components/aria/SpotifyHud";
-import { useDropzone } from "react-dropzone";
 
 export const Route = createFileRoute("/_authenticated/chat/$threadId")({
   ssr: false,
@@ -64,9 +62,6 @@ function ThreadView() {
       threadId={threadId}
       initialMessages={initialMessages}
       assistantName={profile.data?.assistant_name ?? "ARIA"}
-      voiceProvider={(profile.data?.voice_provider ?? "lovable") as "lovable" | "elevenlabs"}
-      voiceId={profile.data?.voice_id ?? "alloy"}
-      elevenVoiceId={profile.data?.elevenlabs_voice_id ?? null}
       onMoodChange={setMood}
     />
   );
@@ -76,17 +71,11 @@ function ChatRuntime({
   threadId,
   initialMessages,
   assistantName,
-  voiceProvider,
-  voiceId,
-  elevenVoiceId,
   onMoodChange,
 }: {
   threadId: string;
   initialMessages: UIMessage[];
   assistantName: string;
-  voiceProvider: "lovable" | "elevenlabs";
-  voiceId: string;
-  elevenVoiceId: string | null;
   onMoodChange: (m: "idle" | "thinking" | "speaking") => void;
 }) {
   const [input, setInput] = useState("");
@@ -170,19 +159,13 @@ function ChatRuntime({
     try {
       const { data: sess } = await supabase.auth.getSession();
       const token = sess.session?.access_token;
-      const endpoint =
-        voiceProvider === "elevenlabs" ? "/api/tts/elevenlabs" : "/api/tts/lovable";
-      const body =
-        voiceProvider === "elevenlabs"
-          ? { text, voiceId: elevenVoiceId || undefined }
-          : { text, voice: voiceId };
-      const res = await fetch(endpoint, {
+      const res = await fetch("/api/tts/lovable", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
           ...(token ? { Authorization: `Bearer ${token}` } : {}),
         },
-        body: JSON.stringify(body),
+        body: JSON.stringify({ text }),
       });
       if (!res.ok) throw new Error(await res.text());
       const blob = await res.blob();
@@ -295,28 +278,8 @@ function ChatRuntime({
     }
   }
 
-  const dropzone = useDropzone({
-    noClick: true,
-    noKeyboard: true,
-    onDrop: (files) => {
-      const dt = new DataTransfer();
-      files.forEach((f) => dt.items.add(f));
-      void handleFiles(dt.files);
-    },
-  });
-
   return (
-    <div
-      {...dropzone.getRootProps({ className: "flex min-h-0 flex-1 flex-col relative" })}
-    >
-      <input {...dropzone.getInputProps()} />
-      {dropzone.isDragActive && (
-        <div className="pointer-events-none absolute inset-0 z-30 grid place-items-center bg-primary/10 backdrop-blur-sm">
-          <div className="hud-corner rounded-xl border-2 border-dashed border-primary/60 bg-card/80 px-6 py-4 font-display text-xs uppercase tracking-widest text-primary hud-text-glow">
-            Drop to attach
-          </div>
-        </div>
-      )}
+    <div className="flex min-h-0 flex-1 flex-col">
       {/* Compact mobile HUD header */}
       <div className="sticky top-0 z-10 flex items-center justify-between border-b border-primary/15 bg-background/85 px-4 py-2.5 backdrop-blur">
         <ThreadDrawer
@@ -435,7 +398,6 @@ function ChatRuntime({
 
       {/* Composer */}
       <div className="relative border-t border-primary/15 bg-background/70 px-3 py-3 backdrop-blur-xl">
-        <SpotifyHud />
         <div className="pointer-events-none absolute inset-x-0 -top-px h-px bg-gradient-to-r from-transparent via-primary/60 to-transparent" />
         <input
           ref={fileInputRef}
@@ -603,11 +565,6 @@ function MessageBubble({ message, assistantName }: { message: UIMessage; assista
     );
   }
 
-  // Tool invocations the model made during this assistant turn.
-  const toolParts = message.parts.filter(
-    (p) => typeof p.type === "string" && p.type.startsWith("tool-"),
-  ) as Array<{ type: string; state?: string; input?: unknown; output?: unknown }>;
-
   return (
     <div className="flex gap-2.5">
       <div className="grid h-7 w-7 shrink-0 place-items-center rounded-full border border-primary/40 bg-card animate-hud-breathe">
@@ -617,27 +574,10 @@ function MessageBubble({ message, assistantName }: { message: UIMessage; assista
         <div className="mb-1 font-display text-[10px] uppercase tracking-widest text-primary/80">
           {assistantName}
         </div>
-        {toolParts.map((tp, i) => (
-          <ToolChip key={i} part={tp} />
-        ))}
         <div className="prose prose-invert prose-sm max-w-none break-words text-foreground/90 [&_a]:text-primary [&_code]:rounded [&_code]:bg-card [&_code]:px-1 [&_code]:py-0.5 [&_pre]:bg-card [&_pre]:border [&_pre]:border-primary/20">
           <ReactMarkdown remarkPlugins={[remarkGfm]}>{text}</ReactMarkdown>
         </div>
       </div>
-    </div>
-  );
-}
-
-function ToolChip({ part }: { part: { type: string; state?: string; output?: unknown } }) {
-  const name = part.type.replace(/^tool-/, "");
-  const label = name.replace(/_/g, " ");
-  const running = part.state === "input-streaming" || part.state === "input-available";
-  return (
-    <div className="mb-2 inline-flex items-center gap-1.5 rounded-full border border-accent/40 bg-accent/10 px-2.5 py-0.5 font-mono text-[10px] uppercase tracking-widest text-accent">
-      <span
-        className={`inline-block h-1.5 w-1.5 rounded-full ${running ? "animate-pulse bg-accent" : "bg-emerald-400"}`}
-      />
-      {running ? "calling" : "used"} · {label}
     </div>
   );
 }

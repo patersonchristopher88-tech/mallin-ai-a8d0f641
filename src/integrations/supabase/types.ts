@@ -146,16 +146,13 @@ export type Database = {
           avatar_style: string
           body_font: string
           created_at: string
-          custom_personas: Json
           default_chat_model: string
           default_image_model: string
           density: string
           display_font: string
           display_name: string | null
-          elevenlabs_voice_id: string | null
           email: string | null
           formality: number
-          hud_widgets: Json
           id: string
           input_mode: string
           latitude: number | null
@@ -175,23 +172,19 @@ export type Database = {
           voice_instructions: string | null
           voice_provider: string
           voice_speed: number
-          wake_word_enabled: boolean
         }
         Insert: {
           assistant_name?: string
           avatar_style?: string
           body_font?: string
           created_at?: string
-          custom_personas?: Json
           default_chat_model?: string
           default_image_model?: string
           density?: string
           display_font?: string
           display_name?: string | null
-          elevenlabs_voice_id?: string | null
           email?: string | null
           formality?: number
-          hud_widgets?: Json
           id: string
           input_mode?: string
           latitude?: number | null
@@ -211,23 +204,19 @@ export type Database = {
           voice_instructions?: string | null
           voice_provider?: string
           voice_speed?: number
-          wake_word_enabled?: boolean
         }
         Update: {
           assistant_name?: string
           avatar_style?: string
           body_font?: string
           created_at?: string
-          custom_personas?: Json
           default_chat_model?: string
           default_image_model?: string
           density?: string
           display_font?: string
           display_name?: string | null
-          elevenlabs_voice_id?: string | null
           email?: string | null
           formality?: number
-          hud_widgets?: Json
           id?: string
           input_mode?: string
           latitude?: number | null
@@ -247,7 +236,6 @@ export type Database = {
           voice_instructions?: string | null
           voice_provider?: string
           voice_speed?: number
-          wake_word_enabled?: boolean
         }
         Relationships: []
       }
@@ -278,41 +266,10 @@ export type Database = {
         }
         Relationships: []
       }
-      spotify_tokens: {
-        Row: {
-          access_token: string
-          created_at: string
-          expires_at: string
-          refresh_token: string
-          scope: string | null
-          updated_at: string
-          user_id: string
-        }
-        Insert: {
-          access_token: string
-          created_at?: string
-          expires_at: string
-          refresh_token: string
-          scope?: string | null
-          updated_at?: string
-          user_id: string
-        }
-        Update: {
-          access_token?: string
-          created_at?: string
-          expires_at?: string
-          refresh_token?: string
-          scope?: string | null
-          updated_at?: string
-          user_id?: string
-        }
-        Relationships: []
-      }
       threads: {
         Row: {
           created_at: string
           id: string
-          model: string | null
           persona: string | null
           title: string
           updated_at: string
@@ -321,7 +278,6 @@ export type Database = {
         Insert: {
           created_at?: string
           id?: string
-          model?: string | null
           persona?: string | null
           title?: string
           updated_at?: string
@@ -330,7 +286,6 @@ export type Database = {
         Update: {
           created_at?: string
           id?: string
-          model?: string | null
           persona?: string | null
           title?: string
           updated_at?: string

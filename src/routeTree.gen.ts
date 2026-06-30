@@ -20,9 +20,7 @@ import { Route as AuthenticatedSettingsRouteImport } from './routes/_authenticat
 import { Route as AuthenticatedLibraryRouteImport } from './routes/_authenticated/library'
 import { Route as AuthenticatedChatRouteImport } from './routes/_authenticated/chat'
 import { Route as ApiTtsLovableRouteImport } from './routes/api/tts.lovable'
-import { Route as ApiTtsElevenlabsRouteImport } from './routes/api/tts.elevenlabs'
 import { Route as AuthenticatedChatThreadIdRouteImport } from './routes/_authenticated/chat.$threadId'
-import { Route as ApiPublicSpotifyCallbackRouteImport } from './routes/api/public/spotify.callback'
 
 const AuthRoute = AuthRouteImport.update({
   id: '/auth',
@@ -78,22 +76,11 @@ const ApiTtsLovableRoute = ApiTtsLovableRouteImport.update({
   path: '/api/tts/lovable',
   getParentRoute: () => rootRouteImport,
 } as any)
-const ApiTtsElevenlabsRoute = ApiTtsElevenlabsRouteImport.update({
-  id: '/api/tts/elevenlabs',
-  path: '/api/tts/elevenlabs',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const AuthenticatedChatThreadIdRoute =
   AuthenticatedChatThreadIdRouteImport.update({
     id: '/$threadId',
     path: '/$threadId',
     getParentRoute: () => AuthenticatedChatRoute,
-  } as any)
-const ApiPublicSpotifyCallbackRoute =
-  ApiPublicSpotifyCallbackRouteImport.update({
-    id: '/api/public/spotify/callback',
-    path: '/api/public/spotify/callback',
-    getParentRoute: () => rootRouteImport,
   } as any)
 
 export interface FileRoutesByFullPath {
@@ -107,9 +94,7 @@ export interface FileRoutesByFullPath {
   '/api/generate-image': typeof ApiGenerateImageRoute
   '/api/stt': typeof ApiSttRoute
   '/chat/$threadId': typeof AuthenticatedChatThreadIdRoute
-  '/api/tts/elevenlabs': typeof ApiTtsElevenlabsRoute
   '/api/tts/lovable': typeof ApiTtsLovableRoute
-  '/api/public/spotify/callback': typeof ApiPublicSpotifyCallbackRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -122,9 +107,7 @@ export interface FileRoutesByTo {
   '/api/generate-image': typeof ApiGenerateImageRoute
   '/api/stt': typeof ApiSttRoute
   '/chat/$threadId': typeof AuthenticatedChatThreadIdRoute
-  '/api/tts/elevenlabs': typeof ApiTtsElevenlabsRoute
   '/api/tts/lovable': typeof ApiTtsLovableRoute
-  '/api/public/spotify/callback': typeof ApiPublicSpotifyCallbackRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -139,9 +122,7 @@ export interface FileRoutesById {
   '/api/generate-image': typeof ApiGenerateImageRoute
   '/api/stt': typeof ApiSttRoute
   '/_authenticated/chat/$threadId': typeof AuthenticatedChatThreadIdRoute
-  '/api/tts/elevenlabs': typeof ApiTtsElevenlabsRoute
   '/api/tts/lovable': typeof ApiTtsLovableRoute
-  '/api/public/spotify/callback': typeof ApiPublicSpotifyCallbackRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -156,9 +137,7 @@ export interface FileRouteTypes {
     | '/api/generate-image'
     | '/api/stt'
     | '/chat/$threadId'
-    | '/api/tts/elevenlabs'
     | '/api/tts/lovable'
-    | '/api/public/spotify/callback'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -171,9 +150,7 @@ export interface FileRouteTypes {
     | '/api/generate-image'
     | '/api/stt'
     | '/chat/$threadId'
-    | '/api/tts/elevenlabs'
     | '/api/tts/lovable'
-    | '/api/public/spotify/callback'
   id:
     | '__root__'
     | '/'
@@ -187,9 +164,7 @@ export interface FileRouteTypes {
     | '/api/generate-image'
     | '/api/stt'
     | '/_authenticated/chat/$threadId'
-    | '/api/tts/elevenlabs'
     | '/api/tts/lovable'
-    | '/api/public/spotify/callback'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -199,9 +174,7 @@ export interface RootRouteChildren {
   ApiChatRoute: typeof ApiChatRoute
   ApiGenerateImageRoute: typeof ApiGenerateImageRoute
   ApiSttRoute: typeof ApiSttRoute
-  ApiTtsElevenlabsRoute: typeof ApiTtsElevenlabsRoute
   ApiTtsLovableRoute: typeof ApiTtsLovableRoute
-  ApiPublicSpotifyCallbackRoute: typeof ApiPublicSpotifyCallbackRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -283,26 +256,12 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiTtsLovableRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/api/tts/elevenlabs': {
-      id: '/api/tts/elevenlabs'
-      path: '/api/tts/elevenlabs'
-      fullPath: '/api/tts/elevenlabs'
-      preLoaderRoute: typeof ApiTtsElevenlabsRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/_authenticated/chat/$threadId': {
       id: '/_authenticated/chat/$threadId'
       path: '/$threadId'
       fullPath: '/chat/$threadId'
       preLoaderRoute: typeof AuthenticatedChatThreadIdRouteImport
       parentRoute: typeof AuthenticatedChatRoute
-    }
-    '/api/public/spotify/callback': {
-      id: '/api/public/spotify/callback'
-      path: '/api/public/spotify/callback'
-      fullPath: '/api/public/spotify/callback'
-      preLoaderRoute: typeof ApiPublicSpotifyCallbackRouteImport
-      parentRoute: typeof rootRouteImport
     }
   }
 }
@@ -342,9 +301,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiChatRoute: ApiChatRoute,
   ApiGenerateImageRoute: ApiGenerateImageRoute,
   ApiSttRoute: ApiSttRoute,
-  ApiTtsElevenlabsRoute: ApiTtsElevenlabsRoute,
   ApiTtsLovableRoute: ApiTtsLovableRoute,
-  ApiPublicSpotifyCallbackRoute: ApiPublicSpotifyCallbackRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

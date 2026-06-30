@@ -1,68 +1,45 @@
-# ARIA v3 — "A Million Times Better"
+# ARIA — Mobile-First Build Plan
 
-Locking in Spotify, real voice, working uploads, customization, tools, memory, multi-model, live HUD widgets. Built in two waves so you can try it as it lands.
+Target device: phones (360–430px wide). Everything else (tablet/desktop) scales up gracefully, but every layout, tap target, and interaction is designed for one-thumb use first.
 
-## Wave 1 — Foundations + visible wins (this turn)
+## Mobile-first ground rules
 
-### A. Uploads that actually work
-- New `Composer` component with **drag-and-drop**, paste-to-attach, file picker
-- **Live upload progress** (per-file rings) + thumbnail previews for images, icon chips for docs
-- Bigger types: images, PDFs, DOCX, TXT, MD, CSV, JSON, code
-- Images go straight into the model as vision parts; docs are parsed server-side (`pdf-parse`, `mammoth`) and injected as text context
-- Long-press / X to remove an attachment before sending
+- Single-column layouts everywhere; no side rails on phone.
+- Thread list, Studio library, Settings tabs → bottom sheets / drawers, not sidebars.
+- Bottom tab bar for primary nav: **Chat · Studio · Library · Settings**.
+- Composer docked above the tab bar, safe-area aware (`env(safe-area-inset-bottom)`).
+- Min tap target 44px; orb + voice button are the largest controls.
+- Avatars (orb / Gideon head) sized to ~55% of viewport width, sit above messages on empty state, shrink to a 36px header chip during conversation.
+- Haptics on send / voice start-stop / mood change (`navigator.vibrate`).
+- Sheets use `vaul` Drawer; settings use stacked accordion sections, not 4 side-by-side tabs.
 
-### B. Real voice (ElevenLabs)
-- Connect ElevenLabs via the standard connector (uses your linked account, no key pasting)
-- **TTS**: `/api/tts/elevenlabs.ts` — character preset map (JARVIS = `George`, FRIDAY = `Sarah`, GIDEON = `Adam`, KAREN = `Matilda`, plus 10 more)
-- **STT**: keep Lovable AI `gpt-4o-mini-transcribe` (already works, free) as default, ElevenLabs Scribe optional
-- **Continuous conversation mode**: tap orb → mic stays open, VAD auto-commits, ARIA replies and speaks, loops until you tap again
-- Wake-word ("Hey ARIA") toggle using the Web Speech API as a free always-on listener that hands off to real STT when triggered
+## Build order (mobile-first)
 
-### C. Spotify (BYOK)
-- Settings → **Connections** card with "Connect Spotify" button
-- You add `SPOTIFY_CLIENT_ID` + `SPOTIFY_CLIENT_SECRET` via the secret prompt
-- OAuth flow at `/api/public/spotify/callback` (PKCE), tokens stored in new `spotify_tokens` table (RLS scoped to user)
-- **Now-Playing HUD widget** on chat screen: album art, track, artist, scrubber, prev/play/pause/next
-- ARIA tool calls: `spotify_search`, `spotify_play`, `spotify_pause`, `spotify_next`, `spotify_queue`, `spotify_now_playing` — so you can just say "play Daft Punk"
-
-### D. Tools / function-calling
-- Add tools array to `/api/chat.ts` using Gemini/GPT-5 function calling
-- Built-in tools: `web_search` (Lovable AI built-in), `get_weather` (open-meteo, no key), `get_time`, `create_reminder`, `save_memory`, `recall_memory`, plus the Spotify ones above
-- Tool calls render as collapsible HUD cards in the chat ("⚡ Searching the web…" → result)
-
-### E. Multi-model routing
-- Per-thread model picker (chip in chat header): Gemini 3 Flash / 2.5 Pro / GPT-5 / GPT-5 mini / Claude Sonnet 4.5
-- **Auto mode**: classifier picks Flash for chat, Pro/GPT-5 for reasoning, image model for "draw me…"
-- Persisted on the thread row
-
-## Wave 2 — Customization + HUD widgets (next turn)
-
-### F. Full theme builder
-- Settings → Appearance: color pickers for primary / accent / alert / glow / background, scanline density, grid opacity, vignette, mood-color editor (9 swatches), font picker (Orbitron / Rajdhani / Exo 2 / Share Tech Mono / custom), corner-bracket style, radius, motion level
-- Live preview orb beside the controls
-- "Export theme" → JSON, "Import theme" → paste
-
-### G. Persona studio
-- Edit any persona's name, tagline, system prompt, voice, default model, accent color
-- Create unlimited custom personas, switch per-thread
-
-### H. Live HUD widgets (chat overlay)
-- Top strip: time + date, weather (geolocated), CPU-style "system load" (made of real client metrics: FPS, memory, network), Spotify mini-bar
-- Toggleable per-widget in Settings → HUD
-- All widgets respect mood color
-
-### I. Memory system
-- `memories` table (already exists) wired to `save_memory` / `recall_memory` tools
-- Settings → Memory tab: searchable list, edit, delete, pin
-- Auto-extraction toggle: after each turn, a lightweight classifier asks "is there a durable fact about the user worth remembering?"
+1. **Mobile shell** — bottom tab bar, safe-area layout, route group `_authenticated/(tabs)`, swap current chat header for a compact mobile HUD frame with corner ticks + scanline.
+2. **Voice (listen + speak)** — big mic FAB in composer. STT via Lovable AI `openai/gpt-4o-mini-transcribe` streaming. TTS via Lovable AI default; persona → voice mapping. Auto-play assistant replies when voice mode is on. Visualizer ring around the orb driven by mic RMS.
+3. **ElevenLabs voices (BYOK)** — Settings → Voice: paste key (stored via add_secret), pick from JARVIS/FRIDAY/GIDEON/KAREN character presets + Voice Library search + upload-to-clone. Server route `/api/tts/elevenlabs`.
+4. **OpenAI BYOK** — Settings → Integrations: paste key. Unlocks OpenAI TTS voices + GPT-image in Studio + GPT chat models in the model picker.
+5. **Holographic avatars** — upgrade `JarvisOrb` (already SVG) with extra rings + particle motes; add `GideonHead` (react-three-fiber low-poly wireframe head, lip-sync to TTS audio analyser). Avatar picker in Settings: Orb / Gideon Head / Minimal Dot. Mood → CSS HSL var interpolation over 600ms; 9 user-overridable colors.
+6. **Uploads (docs + photos)** — `aria-uploads` bucket with RLS. Composer: 📎 button → camera / photo library / file. Images sent as `image_url` to Gemini for vision. PDF/DOCX/XLSX parsed server-side, text injected. Per-file 20 MB, max 5 on mobile.
+7. **Studio (image gen + edit)** — `/studio` mobile page: prompt sheet, model picker, size presets (1:1, 9:16, 16:9), streaming partial previews via `openai/gpt-image-2`. Tap an image → edit sheet (mask-free prompt edit). Saved to `generations` + `aria-images`.
+8. **Library** — grid of past generations + uploads, long-press to share/download/delete.
+9. **Threads as bottom sheet** — pull-down from top of chat opens thread list; new thread FAB.
+10. **Memory + daily briefing** — `memories` table writes when user says "remember…"; morning briefing card on Chat tab if profile has lat/lon/tz.
+11. **"Unlimited credits" workaround** — Settings banner explains the cap, with one-tap deep links to add OpenAI / ElevenLabs keys; usage meter shows Lovable AI consumption.
+12. **Polish** — pull-to-refresh on thread list, swipe-to-delete messages, share-sheet export of a thread as markdown, PWA manifest so it installs to home screen with the ARIA icon.
 
 ## Technical notes
 
-- **Schema**: add `spotify_tokens(user_id, access_token, refresh_token, expires_at, scope)`, add `thread.model` and `thread.persona` columns, add `profiles.theme jsonb`, `profiles.custom_personas jsonb`, `profiles.hud_widgets jsonb`
-- **Server fns**: `spotify.functions.ts` (auth + control), `tools.server.ts` (tool dispatcher), `memory.functions.ts`
-- **Routes**: `/api/public/spotify/callback`, `/api/tts/elevenlabs`, `/api/tools/[name]` for tool execution
-- **Composer**: extract from `chat.$threadId.tsx` into `src/components/aria/Composer.tsx` with `useDropzone` (react-dropzone)
-- **Voice loop**: new `useVoiceConversation` hook orchestrating mic → STT → chat → TTS → playback → mic
-- **Secrets needed from you**: `SPOTIFY_CLIENT_ID`, `SPOTIFY_CLIENT_SECRET` (Spotify dashboard → Create app → redirect URI: `https://<your-preview-url>/api/public/spotify/callback`). ElevenLabs comes through the connector flow, no paste.
+- Routes: `src/routes/_authenticated/(tabs)/{chat,studio,library,settings}.tsx` + tab layout file with `<Outlet />` and bottom nav.
+- Server routes: `src/routes/api/{tts/lovable,tts/elevenlabs,tts/openai,stt,upload,generate-image,edit-image}.ts`.
+- Server functions in `src/lib/aria/*.functions.ts`: `listUploads`, `deleteUpload`, `listGenerations`, `searchMemories`, `dailyBriefing`.
+- Storage buckets: `aria-uploads`, `aria-images`, `aria-voice-samples` (all private, RLS by `auth.uid()` prefix).
+- Tables to add: `generations`, `uploads` if not yet present; extend `profiles` with `voice_provider`, `voice_id`, `avatar_style`, `mood_colors jsonb`, `lat`, `lon`.
+- Secrets requested via `add_secret` only after user confirms: `OPENAI_API_KEY`, `ELEVENLABS_API_KEY`.
+- PWA: manifest-only (installable, no offline), per Lovable PWA skill.
 
-Approve and I'll start Wave 1 — uploads + voice + Spotify scaffolding first, then tools + multi-model.
+## Deferred
+
+Real celebrity voice cloning, wake-word always-listening, calendar/email/Slack integrations, multi-user sharing, video generation.
+
+Approve to start with **step 1 (mobile shell)** and **step 2 (voice)** in the same pass.
