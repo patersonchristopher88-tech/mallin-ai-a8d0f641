@@ -86,7 +86,7 @@ function ChatRuntime({
   const [input, setInput] = useState("");
   const [voiceMode, setVoiceMode] = useState(false);
   const [attachments, setAttachments] = useState<
-    Array<{ url: string; mediaType: string; name: string; uploading?: boolean }>
+    Array<{ url: string; mediaType: string; name: string; uploading?: boolean; progress?: number }>
   >([]);
   const scrollRef = useRef<HTMLDivElement | null>(null);
   const lastSpokenIdRef = useRef<string | null>(null);
@@ -221,53 +221,85 @@ function ChatRuntime({
   async function handleFiles(files: FileList | null) {
     if (!files || !files.length) return;
     const list = Array.from(files).slice(0, 6);
-    for (const file of list) {
-      const ext = file.name.split(".").pop() ?? "bin";
-      const placeholder = {
-        url: "",
-        mediaType: file.type || "application/octet-stream",
-        name: file.name,
-        uploading: true,
-      };
-      setAttachments((arr) => [...arr, placeholder]);
-      try {
-        const { data: sess } = await supabase.auth.getSession();
-        const userId = sess.session?.user.id;
-        if (!userId) throw new Error("Not signed in");
-        const path = `${userId}/${Date.now()}-${crypto.randomUUID().slice(0, 8)}.${ext}`;
-        const { error: upErr } = await supabase.storage
-          .from("aria-uploads")
-          .upload(path, file, { contentType: file.type, upsert: false });
-        if (upErr) throw upErr;
-        const { data: signed, error: signErr } = await supabase.storage
-          .from("aria-uploads")
-          .createSignedUrl(path, 60 * 60 * 24);
-        if (signErr || !signed?.signedUrl) throw signErr ?? new Error("Sign failed");
-        await recordUploadFn({
-          data: {
-            path,
-            name: file.name,
-            mime: file.type || "application/octet-stream",
-            size: file.size,
-            threadId,
-          },
-        }).catch(() => {});
-        setAttachments((arr) =>
-          arr.map((a) =>
-            a === placeholder
-              ? {
-                  url: signed.signedUrl,
-                  mediaType: file.type || "application/octet-stream",
-                  name: file.name,
-                }
-              : a,
-          ),
-        );
-      } catch (err) {
-        toast.error(err instanceof Error ? err.message : "Upload failed");
-        setAttachments((arr) => arr.filter((a) => a !== placeholder));
-      }
-    }
+    const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL as string;
+
+    await Promise.all(
+      list.map(async (file) => {
+        const ext = file.name.split(".").pop() ?? "bin";
+        const placeholder = {
+          url: "",
+          mediaType: file.type || "application/octet-stream",
+          name: file.name,
+          uploading: true,
+          progress: 0,
+        };
+        setAttachments((arr) => [...arr, placeholder]);
+        const setProg = (p: number) =>
+          setAttachments((arr) =>
+            arr.map((a) => (a === placeholder ? { ...a, progress: p } : a)),
+          );
+        try {
+          const { data: sess } = await supabase.auth.getSession();
+          const token = sess.session?.access_token;
+          const userId = sess.session?.user.id;
+          if (!userId || !token) throw new Error("Not signed in");
+          const path = `${userId}/${Date.now()}-${crypto.randomUUID().slice(0, 8)}.${ext}`;
+          // Direct REST upload so we get real progress events.
+          await new Promise<void>((resolve, reject) => {
+            const xhr = new XMLHttpRequest();
+            xhr.open(
+              "POST",
+              `${SUPABASE_URL}/storage/v1/object/aria-uploads/${path}`,
+              true,
+            );
+            xhr.setRequestHeader("Authorization", `Bearer ${token}`);
+            xhr.setRequestHeader(
+              "Content-Type",
+              file.type || "application/octet-stream",
+            );
+            xhr.setRequestHeader("x-upsert", "false");
+            xhr.upload.onprogress = (e) => {
+              if (e.lengthComputable) setProg(Math.round((e.loaded / e.total) * 95));
+            };
+            xhr.onload = () =>
+              xhr.status >= 200 && xhr.status < 300
+                ? resolve()
+                : reject(new Error(xhr.responseText || `HTTP ${xhr.status}`));
+            xhr.onerror = () => reject(new Error("Network error"));
+            xhr.send(file);
+          });
+          setProg(97);
+          const { data: signed, error: signErr } = await supabase.storage
+            .from("aria-uploads")
+            .createSignedUrl(path, 60 * 60 * 24);
+          if (signErr || !signed?.signedUrl) throw signErr ?? new Error("Sign failed");
+          await recordUploadFn({
+            data: {
+              path,
+              name: file.name,
+              mime: file.type || "application/octet-stream",
+              size: file.size,
+              threadId,
+            },
+          }).catch(() => {});
+          setAttachments((arr) =>
+            arr.map((a) =>
+              a === placeholder
+                ? {
+                    url: signed.signedUrl,
+                    mediaType: file.type || "application/octet-stream",
+                    name: file.name,
+                  }
+                : a,
+            ),
+          );
+          navigator.vibrate?.(6);
+        } catch (err) {
+          toast.error(`${file.name}: ${err instanceof Error ? err.message : "Upload failed"}`);
+          setAttachments((arr) => arr.filter((a) => a !== placeholder));
+        }
+      }),
+    );
   }
 
   function removeAttachment(i: number) {
