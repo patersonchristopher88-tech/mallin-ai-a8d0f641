@@ -18,6 +18,8 @@ import { toast } from "sonner";
 import { motion, AnimatePresence } from "motion/react";
 import { useServerFn as _useServerFn2 } from "@tanstack/react-start";
 import { recordUpload } from "@/lib/aria/media.functions";
+import { PersonaSwitcher } from "@/components/aria/PersonaSwitcher";
+import type { PersonaKey } from "@/lib/aria/personas";
 
 export const Route = createFileRoute("/_authenticated/chat/$threadId")({
   ssr: false,
@@ -62,10 +64,25 @@ function ThreadView() {
       threadId={threadId}
       initialMessages={initialMessages}
       assistantName={profile.data?.assistant_name ?? "ARIA"}
+      persona={((profile.data as { persona?: string } | null)?.persona as PersonaKey) ?? "jarvis"}
       onMoodChange={setMood}
     />
   );
 }
+
+function ChatRuntime({
+  threadId,
+  initialMessages,
+  assistantName,
+  persona,
+  onMoodChange,
+}: {
+  threadId: string;
+  initialMessages: UIMessage[];
+  assistantName: string;
+  persona: PersonaKey;
+  onMoodChange: (m: "idle" | "thinking" | "speaking") => void;
+}) {
 
 function ChatRuntime({
   threadId,
