@@ -1,10 +1,11 @@
 import { Link, useRouterState } from "@tanstack/react-router";
-import { MessageSquare, Sparkles, Image as ImageIcon, Settings } from "lucide-react";
+import { MessageSquare, Sparkles, Image as ImageIcon, Music, Settings } from "lucide-react";
 import { motion } from "motion/react";
 
 const TABS = [
   { to: "/chat", label: "Chat", Icon: MessageSquare, match: "/chat" },
   { to: "/studio", label: "Studio", Icon: Sparkles, match: "/studio" },
+  { to: "/media", label: "Media", Icon: Music, match: "/media" },
   { to: "/library", label: "Library", Icon: ImageIcon, match: "/library" },
   { to: "/settings", label: "Settings", Icon: Settings, match: "/settings" },
 ] as const;
@@ -17,7 +18,6 @@ export function BottomTabs() {
       className="fixed inset-x-0 bottom-0 z-40"
       style={{ paddingBottom: "env(safe-area-inset-bottom)" }}
     >
-      {/* edge glow */}
       <div
         className="pointer-events-none absolute inset-x-0 -top-6 h-6"
         style={{
@@ -26,7 +26,7 @@ export function BottomTabs() {
         }}
       />
       <div className="hud-glass border-t border-primary/25">
-        <ul className="relative mx-auto grid max-w-md grid-cols-4">
+        <ul className="relative mx-auto grid max-w-md grid-cols-5">
           {TABS.map(({ to, label, Icon, match }) => {
             const active = pathname === match || pathname.startsWith(match + "/");
             return (
