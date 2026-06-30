@@ -83,18 +83,6 @@ function ChatRuntime({
   persona: PersonaKey;
   onMoodChange: (m: "idle" | "thinking" | "speaking") => void;
 }) {
-
-function ChatRuntime({
-  threadId,
-  initialMessages,
-  assistantName,
-  onMoodChange,
-}: {
-  threadId: string;
-  initialMessages: UIMessage[];
-  assistantName: string;
-  onMoodChange: (m: "idle" | "thinking" | "speaking") => void;
-}) {
   const [input, setInput] = useState("");
   const [voiceMode, setVoiceMode] = useState(false);
   const [attachments, setAttachments] = useState<
