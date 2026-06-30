@@ -467,8 +467,18 @@ function ChatRuntime({
                   <Paperclip className="h-5 w-5 text-primary/70" />
                 )}
                 {a.uploading && (
-                  <div className="absolute inset-0 grid place-items-center bg-background/70">
-                    <Loader2 className="h-4 w-4 animate-spin text-primary" />
+                  <div className="absolute inset-0 flex flex-col items-center justify-end gap-0.5 bg-background/75 pb-1">
+                    <span className="font-mono text-[9px] tabular-nums text-primary">
+                      {a.progress ?? 0}%
+                    </span>
+                    <div className="h-0.5 w-12 overflow-hidden rounded-full bg-primary/20">
+                      <motion.div
+                        className="h-full bg-primary"
+                        animate={{ width: `${a.progress ?? 0}%` }}
+                        transition={{ duration: 0.18 }}
+                        style={{ boxShadow: "0 0 6px hsl(var(--primary))" }}
+                      />
+                    </div>
                   </div>
                 )}
                 <button
