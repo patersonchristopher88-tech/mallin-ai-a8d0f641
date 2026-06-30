@@ -334,14 +334,18 @@ function ChatRuntime({
           <div className="grid h-8 w-8 shrink-0 place-items-center">
             <JarvisOrb state={orbState} size={32} />
           </div>
-          <div className="min-w-0">
-            <div className="truncate font-display text-xs uppercase tracking-[0.25em] text-primary hud-text-glow">
-              {assistantName}
+          {isLoading ? (
+            <div className="min-w-0">
+              <div className="truncate font-display text-xs uppercase tracking-[0.25em] text-primary hud-text-glow">
+                {assistantName}
+              </div>
+              <div className="font-mono text-[9px] uppercase tracking-widest text-muted-foreground">
+                Thinking…
+              </div>
             </div>
-            <div className="font-mono text-[9px] uppercase tracking-widest text-muted-foreground">
-              {isLoading ? "Thinking…" : voiceMode ? "Voice · Live" : "Online"}
-            </div>
-          </div>
+          ) : (
+            <PersonaSwitcher current={persona} assistantName={assistantName} />
+          )}
         </div>
         <button
           onClick={() => {
