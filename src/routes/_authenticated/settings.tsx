@@ -292,6 +292,8 @@ function SettingsPage() {
                 )}
               </select>
             </Field>
+
+            <WakeWordAndHotkeyPanel />
           </div>
         )}
 
@@ -337,6 +339,113 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
         {label}
       </label>
       {children}
+    </div>
+  );
+}
+
+function WakeWordAndHotkeyPanel() {
+  const [enabled, setEnabled] = useState(
+    typeof window !== "undefined" && localStorage.getItem("aria.wakeWordEnabled") === "1",
+  );
+  const [phrase, setPhrase] = useState(
+    (typeof window !== "undefined" && localStorage.getItem("aria.wakeWordPhrase")) || "hey aria",
+  );
+  const [hotkey, setHotkey] = useState(
+    (typeof window !== "undefined" && localStorage.getItem("aria.hotkey")) || "mod+shift+a",
+  );
+  const [hotkeyTarget, setHotkeyTarget] = useState(
+    (typeof window !== "undefined" && localStorage.getItem("aria.hotkeyTarget")) || "/chat",
+  );
+
+  function commit(patch: Partial<{ enabled: boolean; phrase: string; hotkey: string; target: string }>) {
+    if (patch.enabled !== undefined) {
+      localStorage.setItem("aria.wakeWordEnabled", patch.enabled ? "1" : "0");
+      setEnabled(patch.enabled);
+    }
+    if (patch.phrase !== undefined) {
+      localStorage.setItem("aria.wakeWordPhrase", patch.phrase);
+      setPhrase(patch.phrase);
+    }
+    if (patch.hotkey !== undefined) {
+      localStorage.setItem("aria.hotkey", patch.hotkey);
+      setHotkey(patch.hotkey);
+    }
+    if (patch.target !== undefined) {
+      localStorage.setItem("aria.hotkeyTarget", patch.target);
+      setHotkeyTarget(patch.target);
+    }
+    window.dispatchEvent(new Event("aria:prefs"));
+  }
+
+  function captureHotkey(e: React.KeyboardEvent<HTMLInputElement>) {
+    e.preventDefault();
+    const parts: string[] = [];
+    if (e.metaKey || e.ctrlKey) parts.push("mod");
+    if (e.shiftKey) parts.push("shift");
+    if (e.altKey) parts.push("alt");
+    const k = e.key.toLowerCase();
+    if (!["control", "meta", "shift", "alt"].includes(k)) parts.push(k);
+    if (parts.length >= 2) commit({ hotkey: parts.join("+") });
+  }
+
+  return (
+    <div className="space-y-6 rounded-lg border border-primary/25 bg-card/40 p-4">
+      <div>
+        <h3 className="font-display text-sm uppercase tracking-widest text-primary hud-text-glow">
+          Wake word
+        </h3>
+        <p className="mt-1 text-xs text-muted-foreground">
+          Chromium-based browsers only. Uses the Web Speech API — mic must stay allowed.
+        </p>
+      </div>
+      <Field label="Enabled">
+        <button
+          onClick={() => commit({ enabled: !enabled })}
+          className={`hud-corner rounded border px-4 py-2 font-mono text-[11px] uppercase tracking-widest transition ${
+            enabled
+              ? "border-primary bg-primary/20 text-primary"
+              : "border-border bg-card text-muted-foreground"
+          }`}
+        >
+          {enabled ? "Listening" : "Off"}
+        </button>
+      </Field>
+      <Field label="Wake phrase">
+        <input
+          value={phrase}
+          onChange={(e) => commit({ phrase: e.target.value.toLowerCase() })}
+          className="w-full max-w-sm rounded border border-primary/30 bg-background/60 px-3 py-2 font-mono text-sm text-foreground focus:border-primary focus:outline-none"
+        />
+      </Field>
+
+      <div className="pt-2">
+        <h3 className="font-display text-sm uppercase tracking-widest text-primary hud-text-glow">
+          Global hotkey
+        </h3>
+        <p className="mt-1 text-xs text-muted-foreground">
+          Press a combo below to capture. Default: Cmd/Ctrl+Shift+A.
+        </p>
+      </div>
+      <Field label="Combo">
+        <input
+          value={hotkey}
+          onKeyDown={captureHotkey}
+          readOnly
+          className="w-full max-w-sm rounded border border-primary/30 bg-background/60 px-3 py-2 font-mono text-sm text-foreground focus:border-primary focus:outline-none"
+        />
+      </Field>
+      <Field label="Open">
+        <select
+          value={hotkeyTarget}
+          onChange={(e) => commit({ target: e.target.value })}
+          className="w-full max-w-sm rounded border border-primary/30 bg-background/60 px-3 py-2 text-foreground focus:border-primary focus:outline-none"
+        >
+          <option value="/chat">Chat</option>
+          <option value="/vision">Live Vision</option>
+          <option value="/ar">AR Mode</option>
+          <option value="/studio">Studio</option>
+        </select>
+      </Field>
     </div>
   );
 }
