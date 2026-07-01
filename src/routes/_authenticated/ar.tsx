@@ -222,7 +222,7 @@ function WebXRMode({ supported }: { supported: boolean | null }) {
       const onFrame = (_t: number, _frame: unknown) => {
         orb.rotation.y += 0.01;
         orb.rotation.x += 0.005;
-        scene.children.forEach((c: THREE.Object3D, i: number) => {
+        scene.children.forEach((c: ThreeNS.Object3D, i: number) => {
           if (i > 0) c.rotation.z += 0.008 * i;
         });
         renderer.render(scene, camera);
