@@ -46,21 +46,22 @@ export const Route = createFileRoute("/api/generate-video")({
         const prompt = (body.prompt ?? "").trim();
         if (!prompt) return new Response("Missing prompt", { status: 400 });
 
-        // Model selection. Kling 2.5 master = cinematic. LTX = fast/cheap.
+        // Model selection. Kling 2.1 master = cinematic quality. Standard = faster/cheaper.
         const cinematic = (body.mode ?? "cinematic") === "cinematic";
         const hasImage = !!body.imageUrl;
         const endpointBase = cinematic
           ? hasImage
-            ? "fal-ai/kling-video/v2.5-turbo/pro/image-to-video"
-            : "fal-ai/kling-video/v2.5-turbo/pro/text-to-video"
+            ? "fal-ai/kling-video/v2.1/master/image-to-video"
+            : "fal-ai/kling-video/v2.1/master/text-to-video"
           : hasImage
-            ? "fal-ai/ltx-video-13b-distilled/image-to-video"
-            : "fal-ai/ltx-video-13b-distilled";
+            ? "fal-ai/kling-video/v2.1/standard/image-to-video"
+            : "fal-ai/kling-video/v2.1/standard/text-to-video";
 
         const payload: Record<string, unknown> = {
           prompt,
           duration: body.duration ?? "5",
           aspect_ratio: body.aspectRatio ?? "16:9",
+          negative_prompt: "blur, distort, low quality, watermark",
         };
         if (hasImage) payload.image_url = body.imageUrl;
 
