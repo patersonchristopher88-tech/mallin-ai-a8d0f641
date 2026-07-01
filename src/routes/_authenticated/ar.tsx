@@ -175,7 +175,7 @@ function WebXRMode({ supported }: { supported: boolean | null }) {
       const gl = renderer.getContext();
       await (gl as WebGLRenderingContext & { makeXRCompatible?: () => Promise<void> }).makeXRCompatible?.();
 
-      const session = (await nav.xr.requestSession("immersive-ar", {
+      const session = (await xr.requestSession("immersive-ar", {
         requiredFeatures: ["local"],
       })) as XRSessionLike & { renderState?: unknown };
       setSessionActive(true);
