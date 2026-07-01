@@ -3,6 +3,7 @@ import { useEffect, useRef, useState } from "react";
 import { motion } from "motion/react";
 import { ArrowLeft, Camera, Glasses, Sparkles } from "lucide-react";
 import { toast } from "sonner";
+import type * as ThreeNS from "three";
 import { useLiveVision } from "@/lib/aria/useLiveVision";
 import { JarvisOrb } from "@/components/aria/JarvisOrb";
 
