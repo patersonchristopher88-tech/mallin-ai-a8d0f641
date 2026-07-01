@@ -517,7 +517,7 @@ function ChatRuntime({
               }}
               placeholder={`Speak to ${assistantName}…`}
               rows={1}
-              className="block w-full resize-none bg-transparent px-3 py-3 pr-11 text-foreground placeholder:text-muted-foreground/60 focus:outline-none"
+              className="block w-full resize-none bg-transparent px-3 py-3 pr-32 text-foreground placeholder:text-muted-foreground/60 focus:outline-none"
               style={{ minHeight: 48, maxHeight: 160 }}
             />
             <div className="absolute bottom-1.5 right-1.5 flex items-center gap-0.5">
