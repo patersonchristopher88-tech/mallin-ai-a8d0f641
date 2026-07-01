@@ -20,14 +20,9 @@ function ARPage() {
   const [webxrSupported, setWebxrSupported] = useState<boolean | null>(null);
 
   useEffect(() => {
-    // Feature detect WebXR AR
-    interface XRNavigator extends Navigator {
-      xr?: { isSessionSupported: (mode: string) => Promise<boolean> };
-    }
-    const nav = navigator as XRNavigator;
-    if (nav.xr?.isSessionSupported) {
-      nav.xr
-        .isSessionSupported("immersive-ar")
+    const xr = (navigator as Navigator & { xr?: { isSessionSupported?: (m: string) => Promise<boolean> } }).xr;
+    if (xr?.isSessionSupported) {
+      xr.isSessionSupported("immersive-ar")
         .then((ok) => setWebxrSupported(ok))
         .catch(() => setWebxrSupported(false));
     } else {
