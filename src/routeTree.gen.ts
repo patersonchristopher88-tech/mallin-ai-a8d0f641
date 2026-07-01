@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as ApiVisionRouteImport } from './routes/api/vision'
 import { Route as ApiSttRouteImport } from './routes/api/stt'
 import { Route as ApiGenerateVideoRouteImport } from './routes/api/generate-video'
 import { Route as ApiGenerateImageRouteImport } from './routes/api/generate-image'
@@ -36,6 +37,11 @@ const AuthenticatedRouteRoute = AuthenticatedRouteRouteImport.update({
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiVisionRoute = ApiVisionRouteImport.update({
+  id: '/api/vision',
+  path: '/api/vision',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiSttRoute = ApiSttRouteImport.update({
@@ -107,6 +113,7 @@ export interface FileRoutesByFullPath {
   '/api/generate-image': typeof ApiGenerateImageRoute
   '/api/generate-video': typeof ApiGenerateVideoRoute
   '/api/stt': typeof ApiSttRoute
+  '/api/vision': typeof ApiVisionRoute
   '/chat/$threadId': typeof AuthenticatedChatThreadIdRoute
   '/api/tts/lovable': typeof ApiTtsLovableRoute
 }
@@ -122,6 +129,7 @@ export interface FileRoutesByTo {
   '/api/generate-image': typeof ApiGenerateImageRoute
   '/api/generate-video': typeof ApiGenerateVideoRoute
   '/api/stt': typeof ApiSttRoute
+  '/api/vision': typeof ApiVisionRoute
   '/chat/$threadId': typeof AuthenticatedChatThreadIdRoute
   '/api/tts/lovable': typeof ApiTtsLovableRoute
 }
@@ -139,6 +147,7 @@ export interface FileRoutesById {
   '/api/generate-image': typeof ApiGenerateImageRoute
   '/api/generate-video': typeof ApiGenerateVideoRoute
   '/api/stt': typeof ApiSttRoute
+  '/api/vision': typeof ApiVisionRoute
   '/_authenticated/chat/$threadId': typeof AuthenticatedChatThreadIdRoute
   '/api/tts/lovable': typeof ApiTtsLovableRoute
 }
@@ -156,6 +165,7 @@ export interface FileRouteTypes {
     | '/api/generate-image'
     | '/api/generate-video'
     | '/api/stt'
+    | '/api/vision'
     | '/chat/$threadId'
     | '/api/tts/lovable'
   fileRoutesByTo: FileRoutesByTo
@@ -171,6 +181,7 @@ export interface FileRouteTypes {
     | '/api/generate-image'
     | '/api/generate-video'
     | '/api/stt'
+    | '/api/vision'
     | '/chat/$threadId'
     | '/api/tts/lovable'
   id:
@@ -187,6 +198,7 @@ export interface FileRouteTypes {
     | '/api/generate-image'
     | '/api/generate-video'
     | '/api/stt'
+    | '/api/vision'
     | '/_authenticated/chat/$threadId'
     | '/api/tts/lovable'
   fileRoutesById: FileRoutesById
@@ -199,6 +211,7 @@ export interface RootRouteChildren {
   ApiGenerateImageRoute: typeof ApiGenerateImageRoute
   ApiGenerateVideoRoute: typeof ApiGenerateVideoRoute
   ApiSttRoute: typeof ApiSttRoute
+  ApiVisionRoute: typeof ApiVisionRoute
   ApiTtsLovableRoute: typeof ApiTtsLovableRoute
 }
 
@@ -223,6 +236,13 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/vision': {
+      id: '/api/vision'
+      path: '/api/vision'
+      fullPath: '/api/vision'
+      preLoaderRoute: typeof ApiVisionRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/stt': {
@@ -343,18 +363,9 @@ const rootRouteChildren: RootRouteChildren = {
   ApiGenerateImageRoute: ApiGenerateImageRoute,
   ApiGenerateVideoRoute: ApiGenerateVideoRoute,
   ApiSttRoute: ApiSttRoute,
+  ApiVisionRoute: ApiVisionRoute,
   ApiTtsLovableRoute: ApiTtsLovableRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}
