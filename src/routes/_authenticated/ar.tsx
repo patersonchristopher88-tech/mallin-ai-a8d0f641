@@ -153,11 +153,6 @@ function WebXRMode({ supported }: { supported: boolean | null }) {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
 
   async function launch() {
-    interface XRNavigator extends Navigator {
-      xr?: {
-        requestSession: (mode: string, opts?: unknown) => Promise<XRSessionLike>;
-      };
-    }
     interface XRSessionLike {
       end: () => Promise<void>;
       addEventListener: (e: string, cb: () => void) => void;
@@ -165,8 +160,10 @@ function WebXRMode({ supported }: { supported: boolean | null }) {
       requestAnimationFrame: (cb: (t: number, frame: unknown) => void) => number;
       updateRenderState: (state: { baseLayer?: unknown }) => void;
     }
-    const nav = navigator as XRNavigator;
-    if (!nav.xr) {
+    const xr = (navigator as Navigator & {
+      xr?: { requestSession?: (mode: string, opts?: unknown) => Promise<XRSessionLike> };
+    }).xr;
+    if (!xr?.requestSession) {
       toast.error("WebXR not available");
       return;
     }
