@@ -13,6 +13,7 @@ import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
 import { ThemeProvider } from "@/components/aria/ThemeProvider";
 import { HudBackdrop } from "@/components/aria/HudBackdrop";
+import { WakeWordManager } from "@/components/aria/WakeWordManager";
 import { Toaster } from "@/components/ui/sonner";
 
 function NotFoundComponent() {
@@ -129,6 +130,7 @@ function RootComponent() {
         <Outlet />
         <div className="hud-scanlines" />
         <div className="hud-noise" />
+        <WakeWordManager />
         <Toaster
           theme="dark"
           position="top-right"
