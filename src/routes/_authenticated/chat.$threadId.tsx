@@ -10,7 +10,8 @@ import { ThreadDrawer } from "@/components/aria/ThreadDrawer";
 import { VoiceMic } from "@/components/aria/VoiceMic";
 import { supabase } from "@/integrations/supabase/client";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { Send, Square, Menu, Volume2, VolumeX, Paperclip, X } from "lucide-react";
+import { Send, Square, Menu, Volume2, VolumeX, Paperclip, X, Camera, Glasses } from "lucide-react";
+import { Link } from "@tanstack/react-router";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import { useTheme } from "@/components/aria/ThemeProvider";
@@ -519,14 +520,32 @@ function ChatRuntime({
               className="block w-full resize-none bg-transparent px-3 py-3 pr-11 text-foreground placeholder:text-muted-foreground/60 focus:outline-none"
               style={{ minHeight: 48, maxHeight: 160 }}
             />
-            <button
-              type="button"
-              onClick={() => fileInputRef.current?.click()}
-              aria-label="Attach"
-              className="absolute bottom-1.5 right-1.5 grid h-9 w-9 place-items-center rounded-md text-primary/70 transition hover:bg-primary/10 hover:text-primary"
-            >
-              <Paperclip className="h-4 w-4" />
-            </button>
+            <div className="absolute bottom-1.5 right-1.5 flex items-center gap-0.5">
+              <Link
+                to="/ar"
+                aria-label="AR mode"
+                onClick={() => navigator.vibrate?.(8)}
+                className="grid h-9 w-9 place-items-center rounded-md text-primary/70 transition hover:bg-primary/10 hover:text-primary"
+              >
+                <Glasses className="h-4 w-4" />
+              </Link>
+              <Link
+                to="/vision"
+                aria-label="Live vision"
+                onClick={() => navigator.vibrate?.(8)}
+                className="grid h-9 w-9 place-items-center rounded-md text-primary/70 transition hover:bg-primary/10 hover:text-primary"
+              >
+                <Camera className="h-4 w-4" />
+              </Link>
+              <button
+                type="button"
+                onClick={() => fileInputRef.current?.click()}
+                aria-label="Attach"
+                className="grid h-9 w-9 place-items-center rounded-md text-primary/70 transition hover:bg-primary/10 hover:text-primary"
+              >
+                <Paperclip className="h-4 w-4" />
+              </button>
+            </div>
           </motion.div>
           {isLoading ? (
             <motion.button
