@@ -98,12 +98,18 @@ function AuthPage() {
             ← ARIA
           </Link>
           <h1 className="mt-4 font-display text-2xl uppercase tracking-widest text-primary hud-text-glow">
-            {mode === "signup" ? "Create Identity" : "Identify Yourself"}
+            {mode === "signup"
+              ? "Create Identity"
+              : mode === "forgot"
+                ? "Recover Access"
+                : "Identify Yourself"}
           </h1>
           <p className="mt-2 text-sm text-muted-foreground">
             {mode === "signup"
               ? "Provision a new ARIA profile in seconds."
-              : "Resume your session and pick up where you left off."}
+              : mode === "forgot"
+                ? "Enter your email and we'll send a secure reset link."
+                : "Resume your session and pick up where you left off."}
           </p>
 
           <form onSubmit={handleSubmit} className="mt-6 space-y-4">
@@ -120,52 +126,79 @@ function AuthPage() {
                 placeholder="you@example.com"
               />
             </div>
-            <div>
-              <label className="mb-1.5 block font-mono text-[10px] uppercase tracking-widest text-primary/70">
-                Password
-              </label>
-              <input
-                type="password"
-                required
-                minLength={6}
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                className="w-full rounded border border-primary/30 bg-background/60 px-3 py-2.5 text-foreground placeholder:text-muted-foreground/50 focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary/50"
-                placeholder="••••••••"
-              />
-            </div>
+            {mode !== "forgot" && (
+              <div>
+                <div className="mb-1.5 flex items-center justify-between">
+                  <label className="block font-mono text-[10px] uppercase tracking-widest text-primary/70">
+                    Password
+                  </label>
+                  {mode === "signin" && (
+                    <button
+                      type="button"
+                      onClick={() => setMode("forgot")}
+                      className="font-mono text-[10px] uppercase tracking-widest text-primary/70 hover:text-primary"
+                    >
+                      Forgot?
+                    </button>
+                  )}
+                </div>
+                <input
+                  type="password"
+                  required
+                  minLength={6}
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  className="w-full rounded border border-primary/30 bg-background/60 px-3 py-2.5 text-foreground placeholder:text-muted-foreground/50 focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary/50"
+                  placeholder="••••••••"
+                />
+              </div>
+            )}
             <button
               type="submit"
               disabled={loading}
               className="hud-corner w-full rounded border border-primary bg-primary/15 px-4 py-2.5 font-display text-sm uppercase tracking-[0.3em] text-primary transition hover:bg-primary/25 disabled:opacity-50 hud-glow"
             >
-              {loading ? "…" : mode === "signup" ? "Initialize" : "Sign In"}
+              {loading
+                ? "…"
+                : mode === "signup"
+                  ? "Initialize"
+                  : mode === "forgot"
+                    ? "Send reset link"
+                    : "Sign In"}
             </button>
           </form>
 
-          <div className="my-5 flex items-center gap-3">
-            <div className="h-px flex-1 bg-primary/20" />
-            <span className="font-mono text-[10px] uppercase tracking-widest text-muted-foreground">
-              or
-            </span>
-            <div className="h-px flex-1 bg-primary/20" />
-          </div>
+          {mode !== "forgot" && (
+            <>
+              <div className="my-5 flex items-center gap-3">
+                <div className="h-px flex-1 bg-primary/20" />
+                <span className="font-mono text-[10px] uppercase tracking-widest text-muted-foreground">
+                  or
+                </span>
+                <div className="h-px flex-1 bg-primary/20" />
+              </div>
+
+              <button
+                onClick={handleGoogle}
+                disabled={loading}
+                className="w-full rounded border border-border bg-card px-4 py-2.5 font-display text-sm uppercase tracking-[0.3em] text-foreground transition hover:bg-secondary disabled:opacity-50"
+              >
+                Continue with Google
+              </button>
+            </>
+          )}
 
           <button
-            onClick={handleGoogle}
-            disabled={loading}
-            className="w-full rounded border border-border bg-card px-4 py-2.5 font-display text-sm uppercase tracking-[0.3em] text-foreground transition hover:bg-secondary disabled:opacity-50"
-          >
-            Continue with Google
-          </button>
-
-          <button
-            onClick={() => setMode(mode === "signin" ? "signup" : "signin")}
+            onClick={() =>
+              setMode(mode === "signin" ? "signup" : mode === "signup" ? "signin" : "signin")
+            }
             className="mt-6 w-full font-mono text-[11px] uppercase tracking-widest text-muted-foreground hover:text-primary"
           >
             {mode === "signin"
               ? "No account? Provision a new identity →"
-              : "← Already have an account? Sign in"}
+              : mode === "signup"
+                ? "← Already have an account? Sign in"
+                : "← Back to sign in"}
           </button>
         </div>
       </div>
