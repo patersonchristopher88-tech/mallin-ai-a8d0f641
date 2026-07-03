@@ -152,6 +152,7 @@ export type Database = {
           density: string
           display_font: string
           display_name: string | null
+          elevenlabs_model: string
           elevenlabs_voice_id: string | null
           email: string | null
           formality: number
@@ -188,6 +189,7 @@ export type Database = {
           density?: string
           display_font?: string
           display_name?: string | null
+          elevenlabs_model?: string
           elevenlabs_voice_id?: string | null
           email?: string | null
           formality?: number
@@ -224,6 +226,7 @@ export type Database = {
           density?: string
           display_font?: string
           display_name?: string | null
+          elevenlabs_model?: string
           elevenlabs_voice_id?: string | null
           email?: string | null
           formality?: number
@@ -311,27 +314,33 @@ export type Database = {
       threads: {
         Row: {
           created_at: string
+          folder: string | null
           id: string
           model: string | null
           persona: string | null
+          pinned: boolean
           title: string
           updated_at: string
           user_id: string
         }
         Insert: {
           created_at?: string
+          folder?: string | null
           id?: string
           model?: string | null
           persona?: string | null
+          pinned?: boolean
           title?: string
           updated_at?: string
           user_id: string
         }
         Update: {
           created_at?: string
+          folder?: string | null
           id?: string
           model?: string | null
           persona?: string | null
+          pinned?: boolean
           title?: string
           updated_at?: string
           user_id?: string
