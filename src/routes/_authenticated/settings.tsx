@@ -272,26 +272,75 @@ function SettingsPage() {
         {tab === "voice" && (
           <div className="space-y-6">
             <Field label="Voice provider">
-              <div className="text-sm text-muted-foreground">
-                Voice in/out, ElevenLabs character presets, and voice cloning arrive in the next update.
-                Defaults are pre-configured so it works the moment voice ships.
+              <div className="grid gap-2 sm:grid-cols-2">
+                {(
+                  [
+                    {
+                      k: "lovable",
+                      title: "Lovable AI (default)",
+                      sub: "OpenAI voices via gateway. Included with your credits.",
+                    },
+                    {
+                      k: "elevenlabs",
+                      title: "ElevenLabs",
+                      sub: "Cinematic, character voices. Uses your ElevenLabs connector.",
+                    },
+                  ] as const
+                ).map((p) => {
+                  const active = ((merged.voice_provider as string) ?? "lovable") === p.k;
+                  return (
+                    <button
+                      key={p.k}
+                      onClick={() => update({ voice_provider: p.k })}
+                      className={`hud-corner rounded-lg border p-3 text-left transition ${
+                        active
+                          ? "border-primary bg-primary/10"
+                          : "border-border bg-card hover:border-primary/40"
+                      }`}
+                    >
+                      <div className="font-display text-sm uppercase tracking-widest text-primary">
+                        {p.title}
+                      </div>
+                      <div className="mt-1 text-xs text-muted-foreground">{p.sub}</div>
+                    </button>
+                  );
+                })}
               </div>
             </Field>
-            <Field label="Default voice">
-              <select
-                value={(merged.voice_id as string) ?? "alloy"}
-                onChange={(e) => update({ voice_id: e.target.value })}
-                className="w-full max-w-sm rounded border border-primary/30 bg-background/60 px-3 py-2 text-foreground focus:border-primary focus:outline-none"
-              >
-                {["alloy", "ash", "ballad", "coral", "echo", "sage", "shimmer", "verse", "marin", "cedar"].map(
-                  (v) => (
+
+            {((merged.voice_provider as string) ?? "lovable") === "lovable" ? (
+              <Field label="Lovable AI voice">
+                <select
+                  value={(merged.voice_id as string) ?? "alloy"}
+                  onChange={(e) => update({ voice_id: e.target.value })}
+                  className="w-full max-w-sm rounded border border-primary/30 bg-background/60 px-3 py-2 text-foreground focus:border-primary focus:outline-none"
+                >
+                  {[
+                    "alloy",
+                    "ash",
+                    "ballad",
+                    "coral",
+                    "echo",
+                    "sage",
+                    "shimmer",
+                    "verse",
+                    "marin",
+                    "cedar",
+                  ].map((v) => (
                     <option key={v} value={v}>
                       {v}
                     </option>
-                  ),
-                )}
-              </select>
-            </Field>
+                  ))}
+                </select>
+              </Field>
+            ) : (
+              <ElevenLabsPicker
+                voiceId={(merged.elevenlabs_voice_id as string) ?? ""}
+                model={(merged.elevenlabs_model as string) ?? "eleven_turbo_v2_5"}
+                onVoice={(v) => update({ elevenlabs_voice_id: v })}
+                onModel={(m) => update({ elevenlabs_model: m })}
+              />
+            )}
 
             <WakeWordAndHotkeyPanel />
           </div>
