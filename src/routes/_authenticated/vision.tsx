@@ -1,7 +1,18 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState } from "react";
 import { motion, AnimatePresence } from "motion/react";
-import { ArrowLeft, Camera, CameraOff, RefreshCw, Volume2, VolumeX, Eye } from "lucide-react";
+import {
+  ArrowLeft,
+  Camera,
+  CameraOff,
+  RefreshCw,
+  Volume2,
+  VolumeX,
+  Eye,
+  Scan,
+  Infinity as InfinityIcon,
+  Hand,
+} from "lucide-react";
 import { useLiveVision } from "@/lib/aria/useLiveVision";
 
 export const Route = createFileRoute("/_authenticated/vision")({
@@ -14,9 +25,19 @@ function VisionPage() {
   const [facingMode, setFacingMode] = useState<"user" | "environment">("environment");
   const [speak, setSpeak] = useState(true);
   const [askInput, setAskInput] = useState("");
-  const { videoRef, active, start, stop, analyzeOnce, samples, thinking, lastError } = useLiveVision({
+  const [mode, setMode] = useState<"manual" | "continuous">("manual");
+  const {
+    videoRef,
+    active,
+    start,
+    stop,
+    analyzeOnce,
+    samples,
+    thinking,
+    lastError,
+  } = useLiveVision({
     facingMode,
-    intervalMs: 3500,
+    intervalMs: mode === "continuous" ? 3500 : 0,
     brief: true,
     speak,
   });
@@ -35,6 +56,26 @@ function VisionPage() {
           <span className="font-display text-xs uppercase tracking-[0.3em]">Vision</span>
         </Link>
         <div className="flex items-center gap-2">
+          <div className="flex overflow-hidden rounded-full border border-primary/30 bg-card/60 p-0.5">
+            <button
+              onClick={() => setMode("manual")}
+              className={`flex items-center gap-1 rounded-full px-2.5 py-1 font-mono text-[10px] uppercase tracking-widest transition ${
+                mode === "manual" ? "bg-primary/20 text-primary" : "text-muted-foreground"
+              }`}
+              aria-pressed={mode === "manual"}
+            >
+              <Hand className="h-3 w-3" /> Manual
+            </button>
+            <button
+              onClick={() => setMode("continuous")}
+              className={`flex items-center gap-1 rounded-full px-2.5 py-1 font-mono text-[10px] uppercase tracking-widest transition ${
+                mode === "continuous" ? "bg-primary/20 text-primary" : "text-muted-foreground"
+              }`}
+              aria-pressed={mode === "continuous"}
+            >
+              <InfinityIcon className="h-3 w-3" /> Live
+            </button>
+          </div>
           <button
             onClick={() => setSpeak((s) => !s)}
             aria-label="Toggle voice"
@@ -67,18 +108,24 @@ function VisionPage() {
 
         {/* HUD overlay */}
         <div className="pointer-events-none absolute inset-0">
-          {/* corners */}
           <span className="absolute left-3 top-3 h-6 w-6 border-l-2 border-t-2 border-primary" />
           <span className="absolute right-3 top-3 h-6 w-6 border-r-2 border-t-2 border-primary" />
           <span className="absolute bottom-3 left-3 h-6 w-6 border-b-2 border-l-2 border-primary" />
           <span className="absolute bottom-3 right-3 h-6 w-6 border-b-2 border-r-2 border-primary" />
-          {/* scan */}
-          {active && (
+          {active && mode === "continuous" && (
             <motion.div
               className="absolute inset-x-0 h-[2px] bg-primary/70"
               style={{ boxShadow: "0 0 12px hsl(var(--primary))" }}
               animate={{ top: ["0%", "100%", "0%"] }}
               transition={{ duration: 3.6, repeat: Infinity, ease: "linear" }}
+            />
+          )}
+          {active && thinking && (
+            <motion.div
+              className="absolute inset-x-0 h-[2px] bg-accent"
+              style={{ boxShadow: "0 0 12px hsl(var(--accent))" }}
+              animate={{ top: ["0%", "100%"] }}
+              transition={{ duration: 1.2, repeat: Infinity, ease: "linear" }}
             />
           )}
           <div className="absolute left-1/2 top-1/2 h-40 w-40 -translate-x-1/2 -translate-y-1/2 rounded-full border border-primary/40" />
@@ -93,7 +140,8 @@ function VisionPage() {
                 Live Vision
               </h2>
               <p className="mt-1 text-xs text-muted-foreground">
-                ARIA describes what your camera sees in real time.
+                ARIA describes what your camera sees. Choose <strong>Manual</strong> to scan on demand
+                or <strong>Live</strong> for continuous narration.
               </p>
               {lastError && <p className="mt-3 text-xs text-destructive">{lastError}</p>}
               <button
@@ -108,7 +156,7 @@ function VisionPage() {
 
         {/* Live captions */}
         {active && samples[0] && (
-          <div className="absolute inset-x-3 bottom-24 flex flex-col items-start gap-1.5">
+          <div className="absolute inset-x-3 bottom-32 flex flex-col items-start gap-1.5">
             <AnimatePresence mode="popLayout">
               {samples.slice(0, 3).map((s, i) => (
                 <motion.div
@@ -134,34 +182,49 @@ function VisionPage() {
         )}
       </div>
 
-      {/* Ask about what you see */}
+      {/* Bottom bar: Scan Now + Ask */}
       {active && (
         <div className="border-t border-primary/15 bg-background/85 px-3 py-3 backdrop-blur">
-          <form
-            onSubmit={(e) => {
-              e.preventDefault();
-              const q = askInput.trim();
-              if (!q) return;
-              void analyzeOnce(q);
-              setAskInput("");
-            }}
-            className="mx-auto flex max-w-3xl items-center gap-2"
-          >
-            <input
-              value={askInput}
-              onChange={(e) => setAskInput(e.target.value)}
-              placeholder="Ask about what you see…"
-              className="flex-1 rounded-lg border border-primary/30 bg-card/60 px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground/60 focus:border-primary focus:outline-none"
-            />
-            <button
-              type="button"
-              onClick={() => stop()}
-              className="grid h-10 w-10 place-items-center rounded-full border border-destructive/50 bg-destructive/15 text-destructive"
-              aria-label="Stop"
+          <div className="mx-auto flex max-w-3xl flex-col gap-2">
+            <div className="flex items-center gap-2">
+              <motion.button
+                type="button"
+                onClick={() => analyzeOnce()}
+                disabled={thinking}
+                whileTap={{ scale: 0.94 }}
+                className="hud-corner flex flex-1 items-center justify-center gap-2 rounded-full border border-primary bg-primary/20 py-3 font-display text-xs uppercase tracking-[0.3em] text-primary transition hover:bg-primary/30 disabled:opacity-50"
+                aria-label="Scan now"
+              >
+                <Scan className="h-4 w-4" />
+                {thinking ? "Scanning…" : "Scan Now"}
+              </motion.button>
+              <button
+                type="button"
+                onClick={() => stop()}
+                className="grid h-12 w-12 place-items-center rounded-full border border-destructive/50 bg-destructive/15 text-destructive"
+                aria-label="Stop camera"
+              >
+                <CameraOff className="h-4 w-4" />
+              </button>
+            </div>
+            <form
+              onSubmit={(e) => {
+                e.preventDefault();
+                const q = askInput.trim();
+                if (!q) return;
+                void analyzeOnce(q);
+                setAskInput("");
+              }}
+              className="flex items-center gap-2"
             >
-              <CameraOff className="h-4 w-4" />
-            </button>
-          </form>
+              <input
+                value={askInput}
+                onChange={(e) => setAskInput(e.target.value)}
+                placeholder="Ask about what you see…"
+                className="flex-1 rounded-lg border border-primary/30 bg-card/60 px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground/60 focus:border-primary focus:outline-none"
+              />
+            </form>
+          </div>
         </div>
       )}
     </main>
