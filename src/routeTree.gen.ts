@@ -9,6 +9,7 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as ResetPasswordRouteImport } from './routes/reset-password'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as IndexRouteImport } from './routes/index'
@@ -25,8 +26,14 @@ import { Route as AuthenticatedLibraryRouteImport } from './routes/_authenticate
 import { Route as AuthenticatedChatRouteImport } from './routes/_authenticated/chat'
 import { Route as AuthenticatedArRouteImport } from './routes/_authenticated/ar'
 import { Route as ApiTtsLovableRouteImport } from './routes/api/tts.lovable'
+import { Route as ApiTtsElevenlabsRouteImport } from './routes/api/tts.elevenlabs'
 import { Route as AuthenticatedChatThreadIdRouteImport } from './routes/_authenticated/chat.$threadId'
 
+const ResetPasswordRoute = ResetPasswordRouteImport.update({
+  id: '/reset-password',
+  path: '/reset-password',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AuthRoute = AuthRouteImport.update({
   id: '/auth',
   path: '/auth',
@@ -106,6 +113,11 @@ const ApiTtsLovableRoute = ApiTtsLovableRouteImport.update({
   path: '/api/tts/lovable',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiTtsElevenlabsRoute = ApiTtsElevenlabsRouteImport.update({
+  id: '/api/tts/elevenlabs',
+  path: '/api/tts/elevenlabs',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AuthenticatedChatThreadIdRoute =
   AuthenticatedChatThreadIdRouteImport.update({
     id: '/$threadId',
@@ -116,6 +128,7 @@ const AuthenticatedChatThreadIdRoute =
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
+  '/reset-password': typeof ResetPasswordRoute
   '/ar': typeof AuthenticatedArRoute
   '/chat': typeof AuthenticatedChatRouteWithChildren
   '/library': typeof AuthenticatedLibraryRoute
@@ -129,11 +142,13 @@ export interface FileRoutesByFullPath {
   '/api/stt': typeof ApiSttRoute
   '/api/vision': typeof ApiVisionRoute
   '/chat/$threadId': typeof AuthenticatedChatThreadIdRoute
+  '/api/tts/elevenlabs': typeof ApiTtsElevenlabsRoute
   '/api/tts/lovable': typeof ApiTtsLovableRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
+  '/reset-password': typeof ResetPasswordRoute
   '/ar': typeof AuthenticatedArRoute
   '/chat': typeof AuthenticatedChatRouteWithChildren
   '/library': typeof AuthenticatedLibraryRoute
@@ -147,6 +162,7 @@ export interface FileRoutesByTo {
   '/api/stt': typeof ApiSttRoute
   '/api/vision': typeof ApiVisionRoute
   '/chat/$threadId': typeof AuthenticatedChatThreadIdRoute
+  '/api/tts/elevenlabs': typeof ApiTtsElevenlabsRoute
   '/api/tts/lovable': typeof ApiTtsLovableRoute
 }
 export interface FileRoutesById {
@@ -154,6 +170,7 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
   '/auth': typeof AuthRoute
+  '/reset-password': typeof ResetPasswordRoute
   '/_authenticated/ar': typeof AuthenticatedArRoute
   '/_authenticated/chat': typeof AuthenticatedChatRouteWithChildren
   '/_authenticated/library': typeof AuthenticatedLibraryRoute
@@ -167,6 +184,7 @@ export interface FileRoutesById {
   '/api/stt': typeof ApiSttRoute
   '/api/vision': typeof ApiVisionRoute
   '/_authenticated/chat/$threadId': typeof AuthenticatedChatThreadIdRoute
+  '/api/tts/elevenlabs': typeof ApiTtsElevenlabsRoute
   '/api/tts/lovable': typeof ApiTtsLovableRoute
 }
 export interface FileRouteTypes {
@@ -174,6 +192,7 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/auth'
+    | '/reset-password'
     | '/ar'
     | '/chat'
     | '/library'
@@ -187,11 +206,13 @@ export interface FileRouteTypes {
     | '/api/stt'
     | '/api/vision'
     | '/chat/$threadId'
+    | '/api/tts/elevenlabs'
     | '/api/tts/lovable'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
     | '/auth'
+    | '/reset-password'
     | '/ar'
     | '/chat'
     | '/library'
@@ -205,12 +226,14 @@ export interface FileRouteTypes {
     | '/api/stt'
     | '/api/vision'
     | '/chat/$threadId'
+    | '/api/tts/elevenlabs'
     | '/api/tts/lovable'
   id:
     | '__root__'
     | '/'
     | '/_authenticated'
     | '/auth'
+    | '/reset-password'
     | '/_authenticated/ar'
     | '/_authenticated/chat'
     | '/_authenticated/library'
@@ -224,6 +247,7 @@ export interface FileRouteTypes {
     | '/api/stt'
     | '/api/vision'
     | '/_authenticated/chat/$threadId'
+    | '/api/tts/elevenlabs'
     | '/api/tts/lovable'
   fileRoutesById: FileRoutesById
 }
@@ -231,16 +255,25 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
   AuthRoute: typeof AuthRoute
+  ResetPasswordRoute: typeof ResetPasswordRoute
   ApiChatRoute: typeof ApiChatRoute
   ApiGenerateImageRoute: typeof ApiGenerateImageRoute
   ApiGenerateVideoRoute: typeof ApiGenerateVideoRoute
   ApiSttRoute: typeof ApiSttRoute
   ApiVisionRoute: typeof ApiVisionRoute
+  ApiTtsElevenlabsRoute: typeof ApiTtsElevenlabsRoute
   ApiTtsLovableRoute: typeof ApiTtsLovableRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/reset-password': {
+      id: '/reset-password'
+      path: '/reset-password'
+      fullPath: '/reset-password'
+      preLoaderRoute: typeof ResetPasswordRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/auth': {
       id: '/auth'
       path: '/auth'
@@ -353,6 +386,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiTtsLovableRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/tts/elevenlabs': {
+      id: '/api/tts/elevenlabs'
+      path: '/api/tts/elevenlabs'
+      fullPath: '/api/tts/elevenlabs'
+      preLoaderRoute: typeof ApiTtsElevenlabsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/_authenticated/chat/$threadId': {
       id: '/_authenticated/chat/$threadId'
       path: '/$threadId'
@@ -401,23 +441,15 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
   AuthRoute: AuthRoute,
+  ResetPasswordRoute: ResetPasswordRoute,
   ApiChatRoute: ApiChatRoute,
   ApiGenerateImageRoute: ApiGenerateImageRoute,
   ApiGenerateVideoRoute: ApiGenerateVideoRoute,
   ApiSttRoute: ApiSttRoute,
   ApiVisionRoute: ApiVisionRoute,
+  ApiTtsElevenlabsRoute: ApiTtsElevenlabsRoute,
   ApiTtsLovableRoute: ApiTtsLovableRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}

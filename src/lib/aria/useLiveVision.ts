@@ -10,6 +10,10 @@ export interface VisionSample {
 /**
  * Camera + Gemini vision loop. Handles getUserMedia, frame capture,
  * throttled POST to /api/vision, and optional TTS playback.
+ *
+ * Two modes controlled by `intervalMs`:
+ *   - intervalMs > 0 → Continuous: auto-analyze every N ms
+ *   - intervalMs = 0 → Manual: only analyze when analyzeOnce() is called
  */
 export function useLiveVision(opts: {
   facingMode?: "user" | "environment";
@@ -60,7 +64,7 @@ export function useLiveVision(opts: {
     const ctx = canvas.getContext("2d");
     if (!ctx) return null;
     ctx.drawImage(v, 0, 0, w, h);
-    return canvas.toDataURL("image/jpeg", 0.7);
+    return canvas.toDataURL("image/jpeg", 0.72);
   }, []);
 
   const analyzeOnce = useCallback(async (overridePrompt?: string) => {
@@ -145,6 +149,22 @@ export function useLiveVision(opts: {
       toast.error(msg);
     }
   }, [analyzeOnce, facingMode, intervalMs]);
+
+  // Restart timer when intervalMs flips between manual (0) and continuous (>0).
+  useEffect(() => {
+    if (!active) return;
+    if (timerRef.current) {
+      window.clearInterval(timerRef.current);
+      timerRef.current = null;
+    }
+    if (intervalMs > 0) {
+      timerRef.current = window.setInterval(() => analyzeOnce(), intervalMs);
+    }
+    return () => {
+      if (timerRef.current) window.clearInterval(timerRef.current);
+      timerRef.current = null;
+    };
+  }, [intervalMs, active, analyzeOnce]);
 
   useEffect(() => {
     if (autoStart) void start();

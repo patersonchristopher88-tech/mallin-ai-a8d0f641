@@ -8,7 +8,9 @@ import { useTheme } from "@/components/aria/ThemeProvider";
 import { useEffect, useState } from "react";
 import { JarvisOrb } from "@/components/aria/JarvisOrb";
 import { toast } from "sonner";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, Play } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
+import { ELEVENLABS_VOICES } from "@/lib/aria/elevenlabs-voices";
 
 export const Route = createFileRoute("/_authenticated/settings")({
   ssr: false,
@@ -272,26 +274,75 @@ function SettingsPage() {
         {tab === "voice" && (
           <div className="space-y-6">
             <Field label="Voice provider">
-              <div className="text-sm text-muted-foreground">
-                Voice in/out, ElevenLabs character presets, and voice cloning arrive in the next update.
-                Defaults are pre-configured so it works the moment voice ships.
+              <div className="grid gap-2 sm:grid-cols-2">
+                {(
+                  [
+                    {
+                      k: "lovable",
+                      title: "Lovable AI (default)",
+                      sub: "OpenAI voices via gateway. Included with your credits.",
+                    },
+                    {
+                      k: "elevenlabs",
+                      title: "ElevenLabs",
+                      sub: "Cinematic, character voices. Uses your ElevenLabs connector.",
+                    },
+                  ] as const
+                ).map((p) => {
+                  const active = ((merged.voice_provider as string) ?? "lovable") === p.k;
+                  return (
+                    <button
+                      key={p.k}
+                      onClick={() => update({ voice_provider: p.k })}
+                      className={`hud-corner rounded-lg border p-3 text-left transition ${
+                        active
+                          ? "border-primary bg-primary/10"
+                          : "border-border bg-card hover:border-primary/40"
+                      }`}
+                    >
+                      <div className="font-display text-sm uppercase tracking-widest text-primary">
+                        {p.title}
+                      </div>
+                      <div className="mt-1 text-xs text-muted-foreground">{p.sub}</div>
+                    </button>
+                  );
+                })}
               </div>
             </Field>
-            <Field label="Default voice">
-              <select
-                value={(merged.voice_id as string) ?? "alloy"}
-                onChange={(e) => update({ voice_id: e.target.value })}
-                className="w-full max-w-sm rounded border border-primary/30 bg-background/60 px-3 py-2 text-foreground focus:border-primary focus:outline-none"
-              >
-                {["alloy", "ash", "ballad", "coral", "echo", "sage", "shimmer", "verse", "marin", "cedar"].map(
-                  (v) => (
+
+            {((merged.voice_provider as string) ?? "lovable") === "lovable" ? (
+              <Field label="Lovable AI voice">
+                <select
+                  value={(merged.voice_id as string) ?? "alloy"}
+                  onChange={(e) => update({ voice_id: e.target.value })}
+                  className="w-full max-w-sm rounded border border-primary/30 bg-background/60 px-3 py-2 text-foreground focus:border-primary focus:outline-none"
+                >
+                  {[
+                    "alloy",
+                    "ash",
+                    "ballad",
+                    "coral",
+                    "echo",
+                    "sage",
+                    "shimmer",
+                    "verse",
+                    "marin",
+                    "cedar",
+                  ].map((v) => (
                     <option key={v} value={v}>
                       {v}
                     </option>
-                  ),
-                )}
-              </select>
-            </Field>
+                  ))}
+                </select>
+              </Field>
+            ) : (
+              <ElevenLabsPicker
+                voiceId={(merged.elevenlabs_voice_id as string) ?? ""}
+                model={(merged.elevenlabs_model as string) ?? "eleven_turbo_v2_5"}
+                onVoice={(v) => update({ elevenlabs_voice_id: v })}
+                onModel={(m) => update({ elevenlabs_model: m })}
+              />
+            )}
 
             <WakeWordAndHotkeyPanel />
           </div>
@@ -329,6 +380,98 @@ function SettingsPage() {
         </button>
       </div>
     </main>
+  );
+}
+
+function ElevenLabsPicker({
+  voiceId,
+  model,
+  onVoice,
+  onModel,
+}: {
+  voiceId: string;
+  model: string;
+  onVoice: (v: string) => void;
+  onModel: (m: string) => void;
+}) {
+  const [previewing, setPreviewing] = useState<string | null>(null);
+  async function preview(id: string) {
+    setPreviewing(id);
+    try {
+      const { data: sess } = await supabase.auth.getSession();
+      const token = sess.session?.access_token;
+      const res = await fetch("/api/tts/elevenlabs", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
+        body: JSON.stringify({
+          text: "Systems online. This is how I sound.",
+          voiceId: id,
+          modelId: model,
+        }),
+      });
+      if (!res.ok) throw new Error(await res.text());
+      const blob = await res.blob();
+      const url = URL.createObjectURL(blob);
+      const a = new Audio(url);
+      a.onended = () => {
+        URL.revokeObjectURL(url);
+        setPreviewing(null);
+      };
+      await a.play();
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Preview failed");
+      setPreviewing(null);
+    }
+  }
+  return (
+    <div className="space-y-4">
+      <Field label="ElevenLabs model">
+        <select
+          value={model}
+          onChange={(e) => onModel(e.target.value)}
+          className="w-full max-w-sm rounded border border-primary/30 bg-background/60 px-3 py-2 text-foreground focus:border-primary focus:outline-none"
+        >
+          <option value="eleven_turbo_v2_5">Turbo v2.5 · fastest</option>
+          <option value="eleven_multilingual_v2">Multilingual v2 · highest quality</option>
+          <option value="eleven_turbo_v2">Turbo v2 · balanced</option>
+        </select>
+      </Field>
+      <Field label="ElevenLabs voice">
+        <div className="grid gap-2 sm:grid-cols-2">
+          {ELEVENLABS_VOICES.map((v) => {
+            const active = voiceId === v.id;
+            return (
+              <div
+                key={v.id}
+                className={`hud-corner flex items-center justify-between gap-2 rounded-lg border p-3 transition ${
+                  active ? "border-primary bg-primary/10" : "border-border bg-card hover:border-primary/40"
+                }`}
+              >
+                <button onClick={() => onVoice(v.id)} className="min-w-0 flex-1 text-left">
+                  <div className="font-display text-xs uppercase tracking-widest text-primary">
+                    {v.name}
+                  </div>
+                  <div className="mt-0.5 truncate text-[11px] text-muted-foreground">
+                    {v.description}
+                  </div>
+                </button>
+                <button
+                  onClick={() => preview(v.id)}
+                  disabled={previewing === v.id}
+                  aria-label="Preview"
+                  className="grid h-8 w-8 place-items-center rounded-full border border-primary/40 bg-primary/15 text-primary disabled:opacity-50"
+                >
+                  <Play className="h-3.5 w-3.5" />
+                </button>
+              </div>
+            );
+          })}
+        </div>
+      </Field>
+    </div>
   );
 }
 
