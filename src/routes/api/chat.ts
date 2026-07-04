@@ -1,5 +1,13 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { convertToModelMessages, streamText, type UIMessage } from "ai";
+import {
+  convertToModelMessages,
+  streamText,
+  tool,
+  stepCountIs,
+  generateObject,
+  type UIMessage,
+} from "ai";
+import { z } from "zod";
 import { createClient } from "@supabase/supabase-js";
 import { createLovableAiGatewayProvider } from "@/lib/ai-gateway.server";
 import { buildSystemPrompt, type PersonaKey } from "@/lib/aria/personas";
@@ -43,17 +51,15 @@ export const Route = createFileRoute("/api/chat")({
             return new Response("Bad request", { status: 400 });
           }
 
-          // Verify thread ownership
           const { data: thread } = await userClient
             .from("threads")
-            .select("id, user_id, persona")
+            .select("id, user_id, persona, title")
             .eq("id", threadId)
             .maybeSingle();
           if (!thread || thread.user_id !== userId) {
             return new Response("Thread not found", { status: 404 });
           }
 
-          // Load profile + recent memories for system prompt
           const [{ data: profile }, { data: memories }] = await Promise.all([
             userClient.from("profiles").select("*").eq("id", userId).maybeSingle(),
             userClient
@@ -61,7 +67,7 @@ export const Route = createFileRoute("/api/chat")({
               .select("content")
               .eq("user_id", userId)
               .order("created_at", { ascending: false })
-              .limit(20),
+              .limit(30),
           ]);
 
           const systemPrompt = buildSystemPrompt({
@@ -78,23 +84,130 @@ export const Route = createFileRoute("/api/chat")({
           const gateway = createLovableAiGatewayProvider(LOVABLE_API_KEY);
           const model = gateway(profile?.default_chat_model ?? "google/gemini-3-flash-preview");
 
+          // ==================== AGENT TOOLS ====================
+          const tools = {
+            get_current_time: tool({
+              description:
+                "Get the current date and time in the user's timezone. Use when asked about time, date, day of week.",
+              inputSchema: z.object({}),
+              execute: async () => {
+                const tz = profile?.timezone ?? "UTC";
+                const now = new Date();
+                return {
+                  iso: now.toISOString(),
+                  local: now.toLocaleString("en-US", { timeZone: tz }),
+                  timezone: tz,
+                };
+              },
+            }),
+            remember_fact: tool({
+              description:
+                "Save a durable fact about the user for future conversations (preferences, personal details, goals, context). Only save meaningful, long-term facts.",
+              inputSchema: z.object({
+                fact: z.string().describe("A concise first-person fact, e.g. 'User is a pilot based in Miami.'"),
+                kind: z
+                  .enum(["preference", "personal", "goal", "context", "fact"])
+                  .describe("Category of the memory"),
+              }),
+              execute: async ({ fact, kind }) => {
+                const { error } = await userClient.from("memories").insert({
+                  user_id: userId,
+                  content: fact,
+                  kind,
+                  source_thread_id: threadId,
+                });
+                if (error) return { ok: false, error: error.message };
+                return { ok: true, saved: fact };
+              },
+            }),
+            set_reminder: tool({
+              description:
+                "Schedule a reminder for the user. due_at must be an ISO 8601 timestamp in the future.",
+              inputSchema: z.object({
+                text: z.string().describe("What to remind the user about"),
+                due_at: z.string().describe("ISO 8601 timestamp when the reminder should fire"),
+              }),
+              execute: async ({ text, due_at }) => {
+                const d = new Date(due_at);
+                if (isNaN(d.getTime())) return { ok: false, error: "Invalid date" };
+                const { error } = await userClient.from("reminders").insert({
+                  user_id: userId,
+                  text,
+                  due_at: d.toISOString(),
+                });
+                if (error) return { ok: false, error: error.message };
+                return { ok: true, text, due_at: d.toISOString() };
+              },
+            }),
+            search_web: tool({
+              description:
+                "Search the public web for current information. Use for news, facts, or anything after your training cutoff.",
+              inputSchema: z.object({
+                query: z.string().describe("Search query"),
+              }),
+              execute: async ({ query }) => {
+                try {
+                  const url = `https://api.duckduckgo.com/?q=${encodeURIComponent(query)}&format=json&no_html=1&skip_disambig=1`;
+                  const r = await fetch(url, { headers: { "User-Agent": "ARIA/1.0" } });
+                  const j = (await r.json()) as {
+                    AbstractText?: string;
+                    AbstractURL?: string;
+                    Heading?: string;
+                    RelatedTopics?: Array<{ Text?: string; FirstURL?: string }>;
+                  };
+                  const results: Array<{ title: string; url: string; snippet: string }> = [];
+                  if (j.AbstractText) {
+                    results.push({
+                      title: j.Heading ?? query,
+                      url: j.AbstractURL ?? "",
+                      snippet: j.AbstractText,
+                    });
+                  }
+                  for (const t of (j.RelatedTopics ?? []).slice(0, 6)) {
+                    if (t.Text && t.FirstURL) {
+                      results.push({ title: t.Text.slice(0, 80), url: t.FirstURL, snippet: t.Text });
+                    }
+                  }
+                  return { query, results: results.slice(0, 8) };
+                } catch (e) {
+                  return { query, error: e instanceof Error ? e.message : "Search failed", results: [] };
+                }
+              },
+            }),
+            list_reminders: tool({
+              description: "List the user's upcoming reminders.",
+              inputSchema: z.object({}),
+              execute: async () => {
+                const { data } = await userClient
+                  .from("reminders")
+                  .select("text, due_at, done")
+                  .eq("done", false)
+                  .order("due_at", { ascending: true })
+                  .limit(10);
+                return { reminders: data ?? [] };
+              },
+            }),
+          };
+
           const result = streamText({
             model,
             system: systemPrompt,
             messages: await convertToModelMessages(messages),
+            tools,
+            stopWhen: stepCountIs(8),
           });
 
           return result.toUIMessageStreamResponse({
             originalMessages: messages,
             onFinish: async ({ messages: finalMessages }) => {
-              // Persist any new messages (last user + assistant) for this thread.
               try {
-                // Fetch ids we already have to avoid duplicates.
                 const { data: existing } = await userClient
                   .from("messages")
                   .select("ai_sdk_id")
                   .eq("thread_id", threadId);
-                const existingIds = new Set((existing ?? []).map((r) => r.ai_sdk_id).filter(Boolean));
+                const existingIds = new Set(
+                  (existing ?? []).map((r) => r.ai_sdk_id).filter(Boolean),
+                );
 
                 const toInsert = finalMessages
                   .filter((m) => !existingIds.has(m.id))
@@ -114,10 +227,6 @@ export const Route = createFileRoute("/api/chat")({
                   .update({ updated_at: new Date().toISOString() })
                   .eq("id", threadId);
 
-                // Auto-title brand-new threads from the first user message.
-                if (thread && (thread as { title?: string }).title == null) {
-                  // no-op; we'll auto-title below regardless when title is default
-                }
                 const firstUser = finalMessages.find((m) => m.role === "user");
                 if (firstUser) {
                   const text = firstUser.parts
@@ -133,6 +242,67 @@ export const Route = createFileRoute("/api/chat")({
                     if (t?.title === "New conversation") {
                       const title = text.length > 60 ? text.slice(0, 57) + "…" : text;
                       await userClient.from("threads").update({ title }).eq("id", threadId);
+                    }
+                  }
+                }
+
+                // ============ AUTO MEMORY EXTRACTION ============
+                // Run silently on user turns; extract 0-3 durable facts.
+                const lastUser = [...finalMessages].reverse().find((m) => m.role === "user");
+                if (lastUser) {
+                  const userText = lastUser.parts
+                    .map((p) => (p.type === "text" ? p.text : ""))
+                    .join(" ")
+                    .trim();
+                  if (userText.length > 30) {
+                    try {
+                      const { object } = await generateObject({
+                        model: gateway("google/gemini-3-flash-preview"),
+                        schema: z.object({
+                          memories: z.array(
+                            z.object({
+                              fact: z.string(),
+                              kind: z.enum([
+                                "preference",
+                                "personal",
+                                "goal",
+                                "context",
+                                "fact",
+                              ]),
+                            }),
+                          ),
+                        }),
+                        prompt: `From this user message, extract 0 to 3 durable facts worth remembering for future conversations. Only extract clear, first-person, long-term facts (preferences, goals, personal details, context). Skip greetings, questions, transient statements, or anything trivial. Return an empty array if nothing qualifies.\n\nMessage: """${userText.slice(0, 2000)}"""`,
+                      });
+                      if (object.memories.length) {
+                        // Dedupe against existing memory contents (case-insensitive fuzzy).
+                        const { data: existingMem } = await userClient
+                          .from("memories")
+                          .select("content")
+                          .eq("user_id", userId)
+                          .limit(200);
+                        const known = new Set(
+                          (existingMem ?? []).map((m) =>
+                            m.content.toLowerCase().replace(/[^a-z0-9]+/g, ""),
+                          ),
+                        );
+                        const toSave = object.memories
+                          .filter((m) => {
+                            const key = m.fact.toLowerCase().replace(/[^a-z0-9]+/g, "");
+                            return key.length > 5 && !known.has(key);
+                          })
+                          .map((m) => ({
+                            user_id: userId,
+                            content: m.fact,
+                            kind: m.kind,
+                            source_thread_id: threadId,
+                          }));
+                        if (toSave.length) {
+                          await userClient.from("memories").insert(toSave);
+                        }
+                      }
+                    } catch (memErr) {
+                      console.warn("[chat] memory extract failed:", memErr);
                     }
                   }
                 }
