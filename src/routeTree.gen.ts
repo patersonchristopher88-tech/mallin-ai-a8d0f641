@@ -22,6 +22,7 @@ import { Route as ApiChatRouteImport } from './routes/api/chat'
 import { Route as AuthenticatedVisionRouteImport } from './routes/_authenticated/vision'
 import { Route as AuthenticatedStudioRouteImport } from './routes/_authenticated/studio'
 import { Route as AuthenticatedSettingsRouteImport } from './routes/_authenticated/settings'
+import { Route as AuthenticatedScreenRouteImport } from './routes/_authenticated/screen'
 import { Route as AuthenticatedRemindersRouteImport } from './routes/_authenticated/reminders'
 import { Route as AuthenticatedMediaRouteImport } from './routes/_authenticated/media'
 import { Route as AuthenticatedLibraryRouteImport } from './routes/_authenticated/library'
@@ -95,6 +96,11 @@ const AuthenticatedSettingsRoute = AuthenticatedSettingsRouteImport.update({
   path: '/settings',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedScreenRoute = AuthenticatedScreenRouteImport.update({
+  id: '/screen',
+  path: '/screen',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const AuthenticatedRemindersRoute = AuthenticatedRemindersRouteImport.update({
   id: '/reminders',
   path: '/reminders',
@@ -146,6 +152,7 @@ export interface FileRoutesByFullPath {
   '/library': typeof AuthenticatedLibraryRoute
   '/media': typeof AuthenticatedMediaRoute
   '/reminders': typeof AuthenticatedRemindersRoute
+  '/screen': typeof AuthenticatedScreenRoute
   '/settings': typeof AuthenticatedSettingsRoute
   '/studio': typeof AuthenticatedStudioRoute
   '/vision': typeof AuthenticatedVisionRoute
@@ -168,6 +175,7 @@ export interface FileRoutesByTo {
   '/library': typeof AuthenticatedLibraryRoute
   '/media': typeof AuthenticatedMediaRoute
   '/reminders': typeof AuthenticatedRemindersRoute
+  '/screen': typeof AuthenticatedScreenRoute
   '/settings': typeof AuthenticatedSettingsRoute
   '/studio': typeof AuthenticatedStudioRoute
   '/vision': typeof AuthenticatedVisionRoute
@@ -192,6 +200,7 @@ export interface FileRoutesById {
   '/_authenticated/library': typeof AuthenticatedLibraryRoute
   '/_authenticated/media': typeof AuthenticatedMediaRoute
   '/_authenticated/reminders': typeof AuthenticatedRemindersRoute
+  '/_authenticated/screen': typeof AuthenticatedScreenRoute
   '/_authenticated/settings': typeof AuthenticatedSettingsRoute
   '/_authenticated/studio': typeof AuthenticatedStudioRoute
   '/_authenticated/vision': typeof AuthenticatedVisionRoute
@@ -216,6 +225,7 @@ export interface FileRouteTypes {
     | '/library'
     | '/media'
     | '/reminders'
+    | '/screen'
     | '/settings'
     | '/studio'
     | '/vision'
@@ -238,6 +248,7 @@ export interface FileRouteTypes {
     | '/library'
     | '/media'
     | '/reminders'
+    | '/screen'
     | '/settings'
     | '/studio'
     | '/vision'
@@ -261,6 +272,7 @@ export interface FileRouteTypes {
     | '/_authenticated/library'
     | '/_authenticated/media'
     | '/_authenticated/reminders'
+    | '/_authenticated/screen'
     | '/_authenticated/settings'
     | '/_authenticated/studio'
     | '/_authenticated/vision'
@@ -383,6 +395,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedSettingsRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/screen': {
+      id: '/_authenticated/screen'
+      path: '/screen'
+      fullPath: '/screen'
+      preLoaderRoute: typeof AuthenticatedScreenRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/reminders': {
       id: '/_authenticated/reminders'
       path: '/reminders'
@@ -459,6 +478,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedLibraryRoute: typeof AuthenticatedLibraryRoute
   AuthenticatedMediaRoute: typeof AuthenticatedMediaRoute
   AuthenticatedRemindersRoute: typeof AuthenticatedRemindersRoute
+  AuthenticatedScreenRoute: typeof AuthenticatedScreenRoute
   AuthenticatedSettingsRoute: typeof AuthenticatedSettingsRoute
   AuthenticatedStudioRoute: typeof AuthenticatedStudioRoute
   AuthenticatedVisionRoute: typeof AuthenticatedVisionRoute
@@ -470,6 +490,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedLibraryRoute: AuthenticatedLibraryRoute,
   AuthenticatedMediaRoute: AuthenticatedMediaRoute,
   AuthenticatedRemindersRoute: AuthenticatedRemindersRoute,
+  AuthenticatedScreenRoute: AuthenticatedScreenRoute,
   AuthenticatedSettingsRoute: AuthenticatedSettingsRoute,
   AuthenticatedStudioRoute: AuthenticatedStudioRoute,
   AuthenticatedVisionRoute: AuthenticatedVisionRoute,
