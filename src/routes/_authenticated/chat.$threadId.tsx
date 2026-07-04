@@ -14,6 +14,8 @@ import { Send, Square, Menu, Volume2, VolumeX, Paperclip, X, Camera, Glasses } f
 import { Link } from "@tanstack/react-router";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
+import rehypeHighlight from "rehype-highlight";
+import "highlight.js/styles/github-dark.css";
 import { useTheme } from "@/components/aria/ThemeProvider";
 import { toast } from "sonner";
 import { motion, AnimatePresence } from "motion/react";
