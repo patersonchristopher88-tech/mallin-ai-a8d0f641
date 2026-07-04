@@ -101,7 +101,11 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { property: "og:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/5bc2f15b-ebe6-48b6-aa56-411e41322e5d/id-preview-e35d7d97--91884138-5f53-4a13-ac82-9c26be98f405.lovable.app-1782924759319.png" },
       { name: "twitter:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/5bc2f15b-ebe6-48b6-aa56-411e41322e5d/id-preview-e35d7d97--91884138-5f53-4a13-ac82-9c26be98f405.lovable.app-1782924759319.png" },
     ],
-    links: [{ rel: "stylesheet", href: appCss }],
+    links: [
+      { rel: "stylesheet", href: appCss },
+      { rel: "manifest", href: "/manifest.webmanifest" },
+      { rel: "apple-touch-icon", href: "/icon-192.png" },
+    ],
   }),
   shellComponent: RootShell,
   component: RootComponent,
