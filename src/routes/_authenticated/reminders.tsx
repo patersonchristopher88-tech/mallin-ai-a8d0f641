@@ -217,7 +217,7 @@ function ReminderRow({
   onToggle,
   onDelete,
 }: {
-  r: { id: string; text: string; due_at: string; done: boolean };
+  r: { id: string; text: string; due_at: string | null; done: boolean };
   onToggle: () => void;
   onDelete: () => void;
 }) {
