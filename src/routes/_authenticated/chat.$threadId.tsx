@@ -10,10 +10,12 @@ import { ThreadDrawer } from "@/components/aria/ThreadDrawer";
 import { VoiceMic } from "@/components/aria/VoiceMic";
 import { supabase } from "@/integrations/supabase/client";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { Send, Square, Menu, Volume2, VolumeX, Paperclip, X, Camera, Glasses } from "lucide-react";
+import { Send, Square, Menu, Volume2, VolumeX, Paperclip, X, Camera, Glasses, Bell, MonitorUp, Wand2 } from "lucide-react";
 import { Link } from "@tanstack/react-router";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
+import rehypeHighlight from "rehype-highlight";
+import "highlight.js/styles/github-dark.css";
 import { useTheme } from "@/components/aria/ThemeProvider";
 import { toast } from "sonner";
 import { motion, AnimatePresence } from "motion/react";
@@ -603,6 +605,22 @@ function MessageBubble({ message, assistantName }: { message: UIMessage; assista
                       className="max-h-48 max-w-[70vw] rounded-xl border border-primary/40 object-cover"
                     />
                   </a>
+                ) : f.mediaType === "application/pdf" ? (
+                  <div key={i} className="w-[70vw] max-w-md overflow-hidden rounded-xl border border-primary/40 bg-card/60">
+                    <iframe
+                      src={f.url}
+                      title={f.filename ?? "pdf"}
+                      className="h-64 w-full bg-white"
+                    />
+                    <a
+                      href={f.url}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="block truncate px-2.5 py-1.5 text-xs text-foreground"
+                    >
+                      📄 {f.filename ?? "document.pdf"}
+                    </a>
+                  </div>
                 ) : (
                   <a
                     key={i}
@@ -645,7 +663,7 @@ function MessageBubble({ message, assistantName }: { message: UIMessage; assista
           {assistantName}
         </div>
         <div className="prose prose-invert prose-sm max-w-none break-words text-foreground/90 [&_a]:text-primary [&_code]:rounded [&_code]:bg-card [&_code]:px-1 [&_code]:py-0.5 [&_pre]:bg-card [&_pre]:border [&_pre]:border-primary/20">
-          <ReactMarkdown remarkPlugins={[remarkGfm]}>{text}</ReactMarkdown>
+          <ReactMarkdown remarkPlugins={[remarkGfm]} rehypePlugins={[rehypeHighlight]}>{text}</ReactMarkdown>
         </div>
       </div>
     </div>

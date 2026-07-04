@@ -17,12 +17,17 @@ import { Route as ApiVisionRouteImport } from './routes/api/vision'
 import { Route as ApiSttRouteImport } from './routes/api/stt'
 import { Route as ApiGenerateVideoRouteImport } from './routes/api/generate-video'
 import { Route as ApiGenerateImageRouteImport } from './routes/api/generate-image'
+import { Route as ApiEditImageRouteImport } from './routes/api/edit-image'
 import { Route as ApiChatRouteImport } from './routes/api/chat'
 import { Route as AuthenticatedVisionRouteImport } from './routes/_authenticated/vision'
 import { Route as AuthenticatedStudioRouteImport } from './routes/_authenticated/studio'
 import { Route as AuthenticatedSettingsRouteImport } from './routes/_authenticated/settings'
+import { Route as AuthenticatedScreenRouteImport } from './routes/_authenticated/screen'
+import { Route as AuthenticatedRemindersRouteImport } from './routes/_authenticated/reminders'
+import { Route as AuthenticatedMusicRouteImport } from './routes/_authenticated/music'
 import { Route as AuthenticatedMediaRouteImport } from './routes/_authenticated/media'
 import { Route as AuthenticatedLibraryRouteImport } from './routes/_authenticated/library'
+import { Route as AuthenticatedEditRouteImport } from './routes/_authenticated/edit'
 import { Route as AuthenticatedChatRouteImport } from './routes/_authenticated/chat'
 import { Route as AuthenticatedArRouteImport } from './routes/_authenticated/ar'
 import { Route as ApiTtsLovableRouteImport } from './routes/api/tts.lovable'
@@ -68,6 +73,11 @@ const ApiGenerateImageRoute = ApiGenerateImageRouteImport.update({
   path: '/api/generate-image',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiEditImageRoute = ApiEditImageRouteImport.update({
+  id: '/api/edit-image',
+  path: '/api/edit-image',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiChatRoute = ApiChatRouteImport.update({
   id: '/api/chat',
   path: '/api/chat',
@@ -88,6 +98,21 @@ const AuthenticatedSettingsRoute = AuthenticatedSettingsRouteImport.update({
   path: '/settings',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedScreenRoute = AuthenticatedScreenRouteImport.update({
+  id: '/screen',
+  path: '/screen',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedRemindersRoute = AuthenticatedRemindersRouteImport.update({
+  id: '/reminders',
+  path: '/reminders',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedMusicRoute = AuthenticatedMusicRouteImport.update({
+  id: '/music',
+  path: '/music',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const AuthenticatedMediaRoute = AuthenticatedMediaRouteImport.update({
   id: '/media',
   path: '/media',
@@ -96,6 +121,11 @@ const AuthenticatedMediaRoute = AuthenticatedMediaRouteImport.update({
 const AuthenticatedLibraryRoute = AuthenticatedLibraryRouteImport.update({
   id: '/library',
   path: '/library',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedEditRoute = AuthenticatedEditRouteImport.update({
+  id: '/edit',
+  path: '/edit',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 const AuthenticatedChatRoute = AuthenticatedChatRouteImport.update({
@@ -131,12 +161,17 @@ export interface FileRoutesByFullPath {
   '/reset-password': typeof ResetPasswordRoute
   '/ar': typeof AuthenticatedArRoute
   '/chat': typeof AuthenticatedChatRouteWithChildren
+  '/edit': typeof AuthenticatedEditRoute
   '/library': typeof AuthenticatedLibraryRoute
   '/media': typeof AuthenticatedMediaRoute
+  '/music': typeof AuthenticatedMusicRoute
+  '/reminders': typeof AuthenticatedRemindersRoute
+  '/screen': typeof AuthenticatedScreenRoute
   '/settings': typeof AuthenticatedSettingsRoute
   '/studio': typeof AuthenticatedStudioRoute
   '/vision': typeof AuthenticatedVisionRoute
   '/api/chat': typeof ApiChatRoute
+  '/api/edit-image': typeof ApiEditImageRoute
   '/api/generate-image': typeof ApiGenerateImageRoute
   '/api/generate-video': typeof ApiGenerateVideoRoute
   '/api/stt': typeof ApiSttRoute
@@ -151,12 +186,17 @@ export interface FileRoutesByTo {
   '/reset-password': typeof ResetPasswordRoute
   '/ar': typeof AuthenticatedArRoute
   '/chat': typeof AuthenticatedChatRouteWithChildren
+  '/edit': typeof AuthenticatedEditRoute
   '/library': typeof AuthenticatedLibraryRoute
   '/media': typeof AuthenticatedMediaRoute
+  '/music': typeof AuthenticatedMusicRoute
+  '/reminders': typeof AuthenticatedRemindersRoute
+  '/screen': typeof AuthenticatedScreenRoute
   '/settings': typeof AuthenticatedSettingsRoute
   '/studio': typeof AuthenticatedStudioRoute
   '/vision': typeof AuthenticatedVisionRoute
   '/api/chat': typeof ApiChatRoute
+  '/api/edit-image': typeof ApiEditImageRoute
   '/api/generate-image': typeof ApiGenerateImageRoute
   '/api/generate-video': typeof ApiGenerateVideoRoute
   '/api/stt': typeof ApiSttRoute
@@ -173,12 +213,17 @@ export interface FileRoutesById {
   '/reset-password': typeof ResetPasswordRoute
   '/_authenticated/ar': typeof AuthenticatedArRoute
   '/_authenticated/chat': typeof AuthenticatedChatRouteWithChildren
+  '/_authenticated/edit': typeof AuthenticatedEditRoute
   '/_authenticated/library': typeof AuthenticatedLibraryRoute
   '/_authenticated/media': typeof AuthenticatedMediaRoute
+  '/_authenticated/music': typeof AuthenticatedMusicRoute
+  '/_authenticated/reminders': typeof AuthenticatedRemindersRoute
+  '/_authenticated/screen': typeof AuthenticatedScreenRoute
   '/_authenticated/settings': typeof AuthenticatedSettingsRoute
   '/_authenticated/studio': typeof AuthenticatedStudioRoute
   '/_authenticated/vision': typeof AuthenticatedVisionRoute
   '/api/chat': typeof ApiChatRoute
+  '/api/edit-image': typeof ApiEditImageRoute
   '/api/generate-image': typeof ApiGenerateImageRoute
   '/api/generate-video': typeof ApiGenerateVideoRoute
   '/api/stt': typeof ApiSttRoute
@@ -195,12 +240,17 @@ export interface FileRouteTypes {
     | '/reset-password'
     | '/ar'
     | '/chat'
+    | '/edit'
     | '/library'
     | '/media'
+    | '/music'
+    | '/reminders'
+    | '/screen'
     | '/settings'
     | '/studio'
     | '/vision'
     | '/api/chat'
+    | '/api/edit-image'
     | '/api/generate-image'
     | '/api/generate-video'
     | '/api/stt'
@@ -215,12 +265,17 @@ export interface FileRouteTypes {
     | '/reset-password'
     | '/ar'
     | '/chat'
+    | '/edit'
     | '/library'
     | '/media'
+    | '/music'
+    | '/reminders'
+    | '/screen'
     | '/settings'
     | '/studio'
     | '/vision'
     | '/api/chat'
+    | '/api/edit-image'
     | '/api/generate-image'
     | '/api/generate-video'
     | '/api/stt'
@@ -236,12 +291,17 @@ export interface FileRouteTypes {
     | '/reset-password'
     | '/_authenticated/ar'
     | '/_authenticated/chat'
+    | '/_authenticated/edit'
     | '/_authenticated/library'
     | '/_authenticated/media'
+    | '/_authenticated/music'
+    | '/_authenticated/reminders'
+    | '/_authenticated/screen'
     | '/_authenticated/settings'
     | '/_authenticated/studio'
     | '/_authenticated/vision'
     | '/api/chat'
+    | '/api/edit-image'
     | '/api/generate-image'
     | '/api/generate-video'
     | '/api/stt'
@@ -257,6 +317,7 @@ export interface RootRouteChildren {
   AuthRoute: typeof AuthRoute
   ResetPasswordRoute: typeof ResetPasswordRoute
   ApiChatRoute: typeof ApiChatRoute
+  ApiEditImageRoute: typeof ApiEditImageRoute
   ApiGenerateImageRoute: typeof ApiGenerateImageRoute
   ApiGenerateVideoRoute: typeof ApiGenerateVideoRoute
   ApiSttRoute: typeof ApiSttRoute
@@ -323,6 +384,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiGenerateImageRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/edit-image': {
+      id: '/api/edit-image'
+      path: '/api/edit-image'
+      fullPath: '/api/edit-image'
+      preLoaderRoute: typeof ApiEditImageRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/chat': {
       id: '/api/chat'
       path: '/api/chat'
@@ -351,6 +419,27 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedSettingsRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/screen': {
+      id: '/_authenticated/screen'
+      path: '/screen'
+      fullPath: '/screen'
+      preLoaderRoute: typeof AuthenticatedScreenRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/reminders': {
+      id: '/_authenticated/reminders'
+      path: '/reminders'
+      fullPath: '/reminders'
+      preLoaderRoute: typeof AuthenticatedRemindersRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/music': {
+      id: '/_authenticated/music'
+      path: '/music'
+      fullPath: '/music'
+      preLoaderRoute: typeof AuthenticatedMusicRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/media': {
       id: '/_authenticated/media'
       path: '/media'
@@ -363,6 +452,13 @@ declare module '@tanstack/react-router' {
       path: '/library'
       fullPath: '/library'
       preLoaderRoute: typeof AuthenticatedLibraryRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/edit': {
+      id: '/_authenticated/edit'
+      path: '/edit'
+      fullPath: '/edit'
+      preLoaderRoute: typeof AuthenticatedEditRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/chat': {
@@ -417,8 +513,12 @@ const AuthenticatedChatRouteWithChildren =
 interface AuthenticatedRouteRouteChildren {
   AuthenticatedArRoute: typeof AuthenticatedArRoute
   AuthenticatedChatRoute: typeof AuthenticatedChatRouteWithChildren
+  AuthenticatedEditRoute: typeof AuthenticatedEditRoute
   AuthenticatedLibraryRoute: typeof AuthenticatedLibraryRoute
   AuthenticatedMediaRoute: typeof AuthenticatedMediaRoute
+  AuthenticatedMusicRoute: typeof AuthenticatedMusicRoute
+  AuthenticatedRemindersRoute: typeof AuthenticatedRemindersRoute
+  AuthenticatedScreenRoute: typeof AuthenticatedScreenRoute
   AuthenticatedSettingsRoute: typeof AuthenticatedSettingsRoute
   AuthenticatedStudioRoute: typeof AuthenticatedStudioRoute
   AuthenticatedVisionRoute: typeof AuthenticatedVisionRoute
@@ -427,8 +527,12 @@ interface AuthenticatedRouteRouteChildren {
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedArRoute: AuthenticatedArRoute,
   AuthenticatedChatRoute: AuthenticatedChatRouteWithChildren,
+  AuthenticatedEditRoute: AuthenticatedEditRoute,
   AuthenticatedLibraryRoute: AuthenticatedLibraryRoute,
   AuthenticatedMediaRoute: AuthenticatedMediaRoute,
+  AuthenticatedMusicRoute: AuthenticatedMusicRoute,
+  AuthenticatedRemindersRoute: AuthenticatedRemindersRoute,
+  AuthenticatedScreenRoute: AuthenticatedScreenRoute,
   AuthenticatedSettingsRoute: AuthenticatedSettingsRoute,
   AuthenticatedStudioRoute: AuthenticatedStudioRoute,
   AuthenticatedVisionRoute: AuthenticatedVisionRoute,
@@ -443,6 +547,7 @@ const rootRouteChildren: RootRouteChildren = {
   AuthRoute: AuthRoute,
   ResetPasswordRoute: ResetPasswordRoute,
   ApiChatRoute: ApiChatRoute,
+  ApiEditImageRoute: ApiEditImageRoute,
   ApiGenerateImageRoute: ApiGenerateImageRoute,
   ApiGenerateVideoRoute: ApiGenerateVideoRoute,
   ApiSttRoute: ApiSttRoute,
