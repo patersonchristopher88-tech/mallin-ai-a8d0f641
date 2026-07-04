@@ -27,6 +27,7 @@ import { Route as AuthenticatedRemindersRouteImport } from './routes/_authentica
 import { Route as AuthenticatedMusicRouteImport } from './routes/_authenticated/music'
 import { Route as AuthenticatedMediaRouteImport } from './routes/_authenticated/media'
 import { Route as AuthenticatedLibraryRouteImport } from './routes/_authenticated/library'
+import { Route as AuthenticatedEditRouteImport } from './routes/_authenticated/edit'
 import { Route as AuthenticatedChatRouteImport } from './routes/_authenticated/chat'
 import { Route as AuthenticatedArRouteImport } from './routes/_authenticated/ar'
 import { Route as ApiTtsLovableRouteImport } from './routes/api/tts.lovable'
@@ -122,6 +123,11 @@ const AuthenticatedLibraryRoute = AuthenticatedLibraryRouteImport.update({
   path: '/library',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedEditRoute = AuthenticatedEditRouteImport.update({
+  id: '/edit',
+  path: '/edit',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const AuthenticatedChatRoute = AuthenticatedChatRouteImport.update({
   id: '/chat',
   path: '/chat',
@@ -155,6 +161,7 @@ export interface FileRoutesByFullPath {
   '/reset-password': typeof ResetPasswordRoute
   '/ar': typeof AuthenticatedArRoute
   '/chat': typeof AuthenticatedChatRouteWithChildren
+  '/edit': typeof AuthenticatedEditRoute
   '/library': typeof AuthenticatedLibraryRoute
   '/media': typeof AuthenticatedMediaRoute
   '/music': typeof AuthenticatedMusicRoute
@@ -179,6 +186,7 @@ export interface FileRoutesByTo {
   '/reset-password': typeof ResetPasswordRoute
   '/ar': typeof AuthenticatedArRoute
   '/chat': typeof AuthenticatedChatRouteWithChildren
+  '/edit': typeof AuthenticatedEditRoute
   '/library': typeof AuthenticatedLibraryRoute
   '/media': typeof AuthenticatedMediaRoute
   '/music': typeof AuthenticatedMusicRoute
@@ -205,6 +213,7 @@ export interface FileRoutesById {
   '/reset-password': typeof ResetPasswordRoute
   '/_authenticated/ar': typeof AuthenticatedArRoute
   '/_authenticated/chat': typeof AuthenticatedChatRouteWithChildren
+  '/_authenticated/edit': typeof AuthenticatedEditRoute
   '/_authenticated/library': typeof AuthenticatedLibraryRoute
   '/_authenticated/media': typeof AuthenticatedMediaRoute
   '/_authenticated/music': typeof AuthenticatedMusicRoute
@@ -231,6 +240,7 @@ export interface FileRouteTypes {
     | '/reset-password'
     | '/ar'
     | '/chat'
+    | '/edit'
     | '/library'
     | '/media'
     | '/music'
@@ -255,6 +265,7 @@ export interface FileRouteTypes {
     | '/reset-password'
     | '/ar'
     | '/chat'
+    | '/edit'
     | '/library'
     | '/media'
     | '/music'
@@ -280,6 +291,7 @@ export interface FileRouteTypes {
     | '/reset-password'
     | '/_authenticated/ar'
     | '/_authenticated/chat'
+    | '/_authenticated/edit'
     | '/_authenticated/library'
     | '/_authenticated/media'
     | '/_authenticated/music'
@@ -442,6 +454,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedLibraryRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/edit': {
+      id: '/_authenticated/edit'
+      path: '/edit'
+      fullPath: '/edit'
+      preLoaderRoute: typeof AuthenticatedEditRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/chat': {
       id: '/_authenticated/chat'
       path: '/chat'
@@ -494,6 +513,7 @@ const AuthenticatedChatRouteWithChildren =
 interface AuthenticatedRouteRouteChildren {
   AuthenticatedArRoute: typeof AuthenticatedArRoute
   AuthenticatedChatRoute: typeof AuthenticatedChatRouteWithChildren
+  AuthenticatedEditRoute: typeof AuthenticatedEditRoute
   AuthenticatedLibraryRoute: typeof AuthenticatedLibraryRoute
   AuthenticatedMediaRoute: typeof AuthenticatedMediaRoute
   AuthenticatedMusicRoute: typeof AuthenticatedMusicRoute
@@ -507,6 +527,7 @@ interface AuthenticatedRouteRouteChildren {
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedArRoute: AuthenticatedArRoute,
   AuthenticatedChatRoute: AuthenticatedChatRouteWithChildren,
+  AuthenticatedEditRoute: AuthenticatedEditRoute,
   AuthenticatedLibraryRoute: AuthenticatedLibraryRoute,
   AuthenticatedMediaRoute: AuthenticatedMediaRoute,
   AuthenticatedMusicRoute: AuthenticatedMusicRoute,
