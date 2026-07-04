@@ -221,8 +221,8 @@ function ReminderRow({
   onToggle: () => void;
   onDelete: () => void;
 }) {
-  const due = new Date(r.due_at);
-  const overdue = !r.done && due.getTime() < Date.now();
+  const due = r.due_at ? new Date(r.due_at) : null;
+  const overdue = !r.done && due != null && due.getTime() < Date.now();
   return (
     <motion.li
       layout
