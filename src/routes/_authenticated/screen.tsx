@@ -77,7 +77,7 @@ function ScreenPage() {
           "Content-Type": "application/json",
           ...(token ? { Authorization: `Bearer ${token}` } : {}),
         },
-        body: JSON.stringify({ imageDataUrl: frame, prompt: question }),
+        body: JSON.stringify({ imageBase64: frame, prompt: question }),
       });
       if (!res.ok) throw new Error(await res.text());
       const j = (await res.json()) as { text?: string };
