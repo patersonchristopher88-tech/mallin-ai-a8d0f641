@@ -605,6 +605,22 @@ function MessageBubble({ message, assistantName }: { message: UIMessage; assista
                       className="max-h-48 max-w-[70vw] rounded-xl border border-primary/40 object-cover"
                     />
                   </a>
+                ) : f.mediaType === "application/pdf" ? (
+                  <div key={i} className="w-[70vw] max-w-md overflow-hidden rounded-xl border border-primary/40 bg-card/60">
+                    <iframe
+                      src={f.url}
+                      title={f.filename ?? "pdf"}
+                      className="h-64 w-full bg-white"
+                    />
+                    <a
+                      href={f.url}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="block truncate px-2.5 py-1.5 text-xs text-foreground"
+                    >
+                      📄 {f.filename ?? "document.pdf"}
+                    </a>
+                  </div>
                 ) : (
                   <a
                     key={i}
