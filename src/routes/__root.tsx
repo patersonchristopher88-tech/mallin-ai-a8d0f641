@@ -14,6 +14,7 @@ import { reportLovableError } from "../lib/lovable-error-reporting";
 import { ThemeProvider } from "@/components/aria/ThemeProvider";
 import { HudBackdrop } from "@/components/aria/HudBackdrop";
 import { WakeWordManager } from "@/components/aria/WakeWordManager";
+import { PwaRegister } from "@/components/aria/PwaRegister";
 import { Toaster } from "@/components/ui/sonner";
 
 function NotFoundComponent() {
