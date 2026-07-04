@@ -45,7 +45,7 @@ function RemindersPage() {
     if (typeof Notification === "undefined" || Notification.permission !== "granted") return;
     const now = Date.now();
     for (const r of q.data ?? []) {
-      if (r.done) continue;
+      if (r.done || !r.due_at) continue;
       const due = new Date(r.due_at).getTime();
       const delay = due - now;
       if (delay > 0 && delay < 24 * 60 * 60 * 1000) {
