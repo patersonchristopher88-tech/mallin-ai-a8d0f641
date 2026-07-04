@@ -17,6 +17,7 @@ import { Route as ApiVisionRouteImport } from './routes/api/vision'
 import { Route as ApiSttRouteImport } from './routes/api/stt'
 import { Route as ApiGenerateVideoRouteImport } from './routes/api/generate-video'
 import { Route as ApiGenerateImageRouteImport } from './routes/api/generate-image'
+import { Route as ApiEditImageRouteImport } from './routes/api/edit-image'
 import { Route as ApiChatRouteImport } from './routes/api/chat'
 import { Route as AuthenticatedVisionRouteImport } from './routes/_authenticated/vision'
 import { Route as AuthenticatedStudioRouteImport } from './routes/_authenticated/studio'
@@ -66,6 +67,11 @@ const ApiGenerateVideoRoute = ApiGenerateVideoRouteImport.update({
 const ApiGenerateImageRoute = ApiGenerateImageRouteImport.update({
   id: '/api/generate-image',
   path: '/api/generate-image',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiEditImageRoute = ApiEditImageRouteImport.update({
+  id: '/api/edit-image',
+  path: '/api/edit-image',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiChatRoute = ApiChatRouteImport.update({
@@ -137,6 +143,7 @@ export interface FileRoutesByFullPath {
   '/studio': typeof AuthenticatedStudioRoute
   '/vision': typeof AuthenticatedVisionRoute
   '/api/chat': typeof ApiChatRoute
+  '/api/edit-image': typeof ApiEditImageRoute
   '/api/generate-image': typeof ApiGenerateImageRoute
   '/api/generate-video': typeof ApiGenerateVideoRoute
   '/api/stt': typeof ApiSttRoute
@@ -157,6 +164,7 @@ export interface FileRoutesByTo {
   '/studio': typeof AuthenticatedStudioRoute
   '/vision': typeof AuthenticatedVisionRoute
   '/api/chat': typeof ApiChatRoute
+  '/api/edit-image': typeof ApiEditImageRoute
   '/api/generate-image': typeof ApiGenerateImageRoute
   '/api/generate-video': typeof ApiGenerateVideoRoute
   '/api/stt': typeof ApiSttRoute
@@ -179,6 +187,7 @@ export interface FileRoutesById {
   '/_authenticated/studio': typeof AuthenticatedStudioRoute
   '/_authenticated/vision': typeof AuthenticatedVisionRoute
   '/api/chat': typeof ApiChatRoute
+  '/api/edit-image': typeof ApiEditImageRoute
   '/api/generate-image': typeof ApiGenerateImageRoute
   '/api/generate-video': typeof ApiGenerateVideoRoute
   '/api/stt': typeof ApiSttRoute
@@ -201,6 +210,7 @@ export interface FileRouteTypes {
     | '/studio'
     | '/vision'
     | '/api/chat'
+    | '/api/edit-image'
     | '/api/generate-image'
     | '/api/generate-video'
     | '/api/stt'
@@ -221,6 +231,7 @@ export interface FileRouteTypes {
     | '/studio'
     | '/vision'
     | '/api/chat'
+    | '/api/edit-image'
     | '/api/generate-image'
     | '/api/generate-video'
     | '/api/stt'
@@ -242,6 +253,7 @@ export interface FileRouteTypes {
     | '/_authenticated/studio'
     | '/_authenticated/vision'
     | '/api/chat'
+    | '/api/edit-image'
     | '/api/generate-image'
     | '/api/generate-video'
     | '/api/stt'
@@ -257,6 +269,7 @@ export interface RootRouteChildren {
   AuthRoute: typeof AuthRoute
   ResetPasswordRoute: typeof ResetPasswordRoute
   ApiChatRoute: typeof ApiChatRoute
+  ApiEditImageRoute: typeof ApiEditImageRoute
   ApiGenerateImageRoute: typeof ApiGenerateImageRoute
   ApiGenerateVideoRoute: typeof ApiGenerateVideoRoute
   ApiSttRoute: typeof ApiSttRoute
@@ -321,6 +334,13 @@ declare module '@tanstack/react-router' {
       path: '/api/generate-image'
       fullPath: '/api/generate-image'
       preLoaderRoute: typeof ApiGenerateImageRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/edit-image': {
+      id: '/api/edit-image'
+      path: '/api/edit-image'
+      fullPath: '/api/edit-image'
+      preLoaderRoute: typeof ApiEditImageRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/chat': {
@@ -443,6 +463,7 @@ const rootRouteChildren: RootRouteChildren = {
   AuthRoute: AuthRoute,
   ResetPasswordRoute: ResetPasswordRoute,
   ApiChatRoute: ApiChatRoute,
+  ApiEditImageRoute: ApiEditImageRoute,
   ApiGenerateImageRoute: ApiGenerateImageRoute,
   ApiGenerateVideoRoute: ApiGenerateVideoRoute,
   ApiSttRoute: ApiSttRoute,
