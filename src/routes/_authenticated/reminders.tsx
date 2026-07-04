@@ -245,7 +245,7 @@ function ReminderRow({
       <div className="min-w-0 flex-1">
         <div className={`truncate text-sm ${r.done ? "line-through" : ""}`}>{r.text}</div>
         <div className="font-mono text-[10px] uppercase tracking-widest text-muted-foreground">
-          {due.toLocaleString()}
+          {due ? due.toLocaleString() : "No date"}
         </div>
       </div>
       <button
