@@ -142,6 +142,7 @@ function RootComponent() {
         <div className="hud-scanlines" />
         <div className="hud-noise" />
         <WakeWordManager />
+        <PwaRegister />
         <Toaster
           theme="dark"
           position="top-right"
