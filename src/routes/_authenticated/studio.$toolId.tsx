@@ -145,10 +145,9 @@ function ToolRunner() {
 
   async function run(e?: React.FormEvent) {
     e?.preventDefault();
-    if (running) return;
+    if (running || !tool) return;
+    const t = tool;
     const prompt = (values.prompt ?? "").trim();
-    const audioField = tool.fields.find((f) => f.kind === "image" && (f.key === "audio"));
-    const imageField = tool.fields.find((f) => f.kind === "image" && f.key === "image");
 
     // Basic validation
     if (tool.runner === "stt") {
