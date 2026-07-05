@@ -34,6 +34,7 @@ import { Route as AuthenticatedChatRouteImport } from './routes/_authenticated/c
 import { Route as AuthenticatedArRouteImport } from './routes/_authenticated/ar'
 import { Route as ApiTtsLovableRouteImport } from './routes/api/tts.lovable'
 import { Route as ApiTtsElevenlabsRouteImport } from './routes/api/tts.elevenlabs'
+import { Route as AuthenticatedStudioToolIdRouteImport } from './routes/_authenticated/studio.$toolId'
 import { Route as AuthenticatedChatThreadIdRouteImport } from './routes/_authenticated/chat.$threadId'
 
 const ResetPasswordRoute = ResetPasswordRouteImport.update({
@@ -160,6 +161,12 @@ const ApiTtsElevenlabsRoute = ApiTtsElevenlabsRouteImport.update({
   path: '/api/tts/elevenlabs',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AuthenticatedStudioToolIdRoute =
+  AuthenticatedStudioToolIdRouteImport.update({
+    id: '/$toolId',
+    path: '/$toolId',
+    getParentRoute: () => AuthenticatedStudioRoute,
+  } as any)
 const AuthenticatedChatThreadIdRoute =
   AuthenticatedChatThreadIdRouteImport.update({
     id: '/$threadId',
@@ -180,7 +187,7 @@ export interface FileRoutesByFullPath {
   '/reminders': typeof AuthenticatedRemindersRoute
   '/screen': typeof AuthenticatedScreenRoute
   '/settings': typeof AuthenticatedSettingsRoute
-  '/studio': typeof AuthenticatedStudioRoute
+  '/studio': typeof AuthenticatedStudioRouteWithChildren
   '/vision': typeof AuthenticatedVisionRoute
   '/api/chat': typeof ApiChatRoute
   '/api/edit-image': typeof ApiEditImageRoute
@@ -191,6 +198,7 @@ export interface FileRoutesByFullPath {
   '/api/vision': typeof ApiVisionRoute
   '/api/vision-factcheck': typeof ApiVisionFactcheckRoute
   '/chat/$threadId': typeof AuthenticatedChatThreadIdRoute
+  '/studio/$toolId': typeof AuthenticatedStudioToolIdRoute
   '/api/tts/elevenlabs': typeof ApiTtsElevenlabsRoute
   '/api/tts/lovable': typeof ApiTtsLovableRoute
 }
@@ -207,7 +215,7 @@ export interface FileRoutesByTo {
   '/reminders': typeof AuthenticatedRemindersRoute
   '/screen': typeof AuthenticatedScreenRoute
   '/settings': typeof AuthenticatedSettingsRoute
-  '/studio': typeof AuthenticatedStudioRoute
+  '/studio': typeof AuthenticatedStudioRouteWithChildren
   '/vision': typeof AuthenticatedVisionRoute
   '/api/chat': typeof ApiChatRoute
   '/api/edit-image': typeof ApiEditImageRoute
@@ -218,6 +226,7 @@ export interface FileRoutesByTo {
   '/api/vision': typeof ApiVisionRoute
   '/api/vision-factcheck': typeof ApiVisionFactcheckRoute
   '/chat/$threadId': typeof AuthenticatedChatThreadIdRoute
+  '/studio/$toolId': typeof AuthenticatedStudioToolIdRoute
   '/api/tts/elevenlabs': typeof ApiTtsElevenlabsRoute
   '/api/tts/lovable': typeof ApiTtsLovableRoute
 }
@@ -236,7 +245,7 @@ export interface FileRoutesById {
   '/_authenticated/reminders': typeof AuthenticatedRemindersRoute
   '/_authenticated/screen': typeof AuthenticatedScreenRoute
   '/_authenticated/settings': typeof AuthenticatedSettingsRoute
-  '/_authenticated/studio': typeof AuthenticatedStudioRoute
+  '/_authenticated/studio': typeof AuthenticatedStudioRouteWithChildren
   '/_authenticated/vision': typeof AuthenticatedVisionRoute
   '/api/chat': typeof ApiChatRoute
   '/api/edit-image': typeof ApiEditImageRoute
@@ -247,6 +256,7 @@ export interface FileRoutesById {
   '/api/vision': typeof ApiVisionRoute
   '/api/vision-factcheck': typeof ApiVisionFactcheckRoute
   '/_authenticated/chat/$threadId': typeof AuthenticatedChatThreadIdRoute
+  '/_authenticated/studio/$toolId': typeof AuthenticatedStudioToolIdRoute
   '/api/tts/elevenlabs': typeof ApiTtsElevenlabsRoute
   '/api/tts/lovable': typeof ApiTtsLovableRoute
 }
@@ -276,6 +286,7 @@ export interface FileRouteTypes {
     | '/api/vision'
     | '/api/vision-factcheck'
     | '/chat/$threadId'
+    | '/studio/$toolId'
     | '/api/tts/elevenlabs'
     | '/api/tts/lovable'
   fileRoutesByTo: FileRoutesByTo
@@ -303,6 +314,7 @@ export interface FileRouteTypes {
     | '/api/vision'
     | '/api/vision-factcheck'
     | '/chat/$threadId'
+    | '/studio/$toolId'
     | '/api/tts/elevenlabs'
     | '/api/tts/lovable'
   id:
@@ -331,6 +343,7 @@ export interface FileRouteTypes {
     | '/api/vision'
     | '/api/vision-factcheck'
     | '/_authenticated/chat/$threadId'
+    | '/_authenticated/studio/$toolId'
     | '/api/tts/elevenlabs'
     | '/api/tts/lovable'
   fileRoutesById: FileRoutesById
@@ -529,6 +542,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiTtsElevenlabsRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_authenticated/studio/$toolId': {
+      id: '/_authenticated/studio/$toolId'
+      path: '/$toolId'
+      fullPath: '/studio/$toolId'
+      preLoaderRoute: typeof AuthenticatedStudioToolIdRouteImport
+      parentRoute: typeof AuthenticatedStudioRoute
+    }
     '/_authenticated/chat/$threadId': {
       id: '/_authenticated/chat/$threadId'
       path: '/$threadId'
@@ -550,6 +570,17 @@ const AuthenticatedChatRouteChildren: AuthenticatedChatRouteChildren = {
 const AuthenticatedChatRouteWithChildren =
   AuthenticatedChatRoute._addFileChildren(AuthenticatedChatRouteChildren)
 
+interface AuthenticatedStudioRouteChildren {
+  AuthenticatedStudioToolIdRoute: typeof AuthenticatedStudioToolIdRoute
+}
+
+const AuthenticatedStudioRouteChildren: AuthenticatedStudioRouteChildren = {
+  AuthenticatedStudioToolIdRoute: AuthenticatedStudioToolIdRoute,
+}
+
+const AuthenticatedStudioRouteWithChildren =
+  AuthenticatedStudioRoute._addFileChildren(AuthenticatedStudioRouteChildren)
+
 interface AuthenticatedRouteRouteChildren {
   AuthenticatedArRoute: typeof AuthenticatedArRoute
   AuthenticatedChatRoute: typeof AuthenticatedChatRouteWithChildren
@@ -560,7 +591,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedRemindersRoute: typeof AuthenticatedRemindersRoute
   AuthenticatedScreenRoute: typeof AuthenticatedScreenRoute
   AuthenticatedSettingsRoute: typeof AuthenticatedSettingsRoute
-  AuthenticatedStudioRoute: typeof AuthenticatedStudioRoute
+  AuthenticatedStudioRoute: typeof AuthenticatedStudioRouteWithChildren
   AuthenticatedVisionRoute: typeof AuthenticatedVisionRoute
 }
 
@@ -574,7 +605,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedRemindersRoute: AuthenticatedRemindersRoute,
   AuthenticatedScreenRoute: AuthenticatedScreenRoute,
   AuthenticatedSettingsRoute: AuthenticatedSettingsRoute,
-  AuthenticatedStudioRoute: AuthenticatedStudioRoute,
+  AuthenticatedStudioRoute: AuthenticatedStudioRouteWithChildren,
   AuthenticatedVisionRoute: AuthenticatedVisionRoute,
 }
 
