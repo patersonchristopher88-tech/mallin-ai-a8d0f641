@@ -337,7 +337,7 @@ function ToolRunner() {
           }
         }
         toast.success("Transcript ready");
-      } else if (tool.runner === "text") {
+      } else if (t.runner === "text") {
         const res = await fetch("/api/text-tool", {
           method: "POST",
           headers: {
@@ -345,8 +345,8 @@ function ToolRunner() {
             ...(token ? { Authorization: `Bearer ${token}` } : {}),
           },
           body: JSON.stringify({
-            toolId: tool.id,
-            textPreset: tool.textPreset,
+            toolId: t.id,
+            textPreset: t.textPreset,
             prompt,
             input: values,
           }),
@@ -366,7 +366,7 @@ function ToolRunner() {
       }
       // clear draft after successful run
       try {
-        window.localStorage.removeItem(`aria:studio:draft:${tool.id}`);
+        window.localStorage.removeItem(`aria:studio:draft:${t.id}`);
       } catch {
         /* ignore */
       }
@@ -389,7 +389,7 @@ function ToolRunner() {
   async function share(url: string) {
     try {
       if (navigator.share) {
-        await navigator.share({ url, title: tool.name });
+        await navigator.share({ url, title: t.name });
       } else {
         await navigator.clipboard.writeText(url);
         toast.success("Link copied");
