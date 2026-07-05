@@ -389,7 +389,7 @@ function ToolRunner() {
   async function share(url: string) {
     try {
       if (navigator.share) {
-        await navigator.share({ url, title: t.name });
+        await navigator.share({ url, title: tool!.name });
       } else {
         await navigator.clipboard.writeText(url);
         toast.success("Link copied");
