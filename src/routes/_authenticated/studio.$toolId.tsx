@@ -150,12 +150,12 @@ function ToolRunner() {
     const prompt = (values.prompt ?? "").trim();
 
     // Basic validation
-    if (tool.runner === "stt") {
+    if (t.runner === "stt") {
       const audio = imgInputs.audio;
       if (!audio?.file) return toast.error("Attach an audio file");
-    } else if (tool.runner === "image-edit") {
+    } else if (t.runner === "image-edit") {
       if (!imgInputs.image) return toast.error("Attach an image");
-    } else if (tool.runner === "image-generate" || tool.runner === "video-generate" || tool.runner === "text" || tool.runner === "tts") {
+    } else if (t.runner === "image-generate" || t.runner === "video-generate" || t.runner === "text" || t.runner === "tts") {
       if (!prompt) return toast.error("Enter a prompt");
     }
 
@@ -167,7 +167,7 @@ function ToolRunner() {
     setVideoStatus("");
     setAudioOut(null);
     setTranscript("");
-    pushRecent(tool.id);
+    pushRecent(t.id);
     abortRef.current?.abort();
     const ac = new AbortController();
     abortRef.current = ac;
@@ -177,16 +177,16 @@ function ToolRunner() {
       const { data: sess } = await supabase.auth.getSession();
       const token = sess.session?.access_token ?? null;
 
-      if (tool.runner === "image-generate") {
-        const finalPrompt = tool.textPreset
-          ? `${tool.textPreset}\n\nUser brief: ${prompt}`
+      if (t.runner === "image-generate") {
+        const finalPrompt = t.textPreset
+          ? `${t.textPreset}\n\nUser brief: ${prompt}`
           : prompt;
         await streamImage(
           "/api/generate-image",
           {
             prompt: finalPrompt,
-            quality: (values.quality as "low" | "medium" | "high") ?? tool.quality ?? "low",
-            size: values.size ?? tool.size ?? "1024x1024",
+            quality: (values.quality as "low" | "medium" | "high") ?? t.quality ?? "low",
+            size: values.size ?? t.size ?? "1024x1024",
           },
           token,
           (url, isFinal) => {
@@ -198,10 +198,10 @@ function ToolRunner() {
           ac.signal,
         );
         toast.success("Image ready");
-      } else if (tool.runner === "image-edit") {
+      } else if (t.runner === "image-edit") {
         const img = imgInputs.image;
-        const finalPrompt = tool.textPreset
-          ? `${tool.textPreset}${prompt ? `\n\nAdditional: ${prompt}` : ""}`
+        const finalPrompt = t.textPreset
+          ? `${t.textPreset}${prompt ? `\n\nAdditional: ${prompt}` : ""}`
           : prompt;
         const dataUrl = img?.dataUrl ?? img?.url ?? "";
         const res = await fetch("/api/edit-image", {
@@ -249,7 +249,7 @@ function ToolRunner() {
         }
         setImgFinal(true);
         toast.success("Edit complete");
-      } else if (tool.runner === "video-generate") {
+      } else if (t.runner === "video-generate") {
         const seed = imgInputs.image;
         await streamVideo(
           {
@@ -279,7 +279,7 @@ function ToolRunner() {
           ac.signal,
         );
         toast.success("Video ready");
-      } else if (tool.runner === "tts") {
+      } else if (t.runner === "tts") {
         const res = await fetch("/api/tts/lovable", {
           method: "POST",
           headers: {
@@ -294,7 +294,7 @@ function ToolRunner() {
         const url = URL.createObjectURL(blob);
         setAudioOut(url);
         toast.success("Audio ready");
-      } else if (tool.runner === "stt") {
+      } else if (t.runner === "stt") {
         const audio = imgInputs.audio?.file;
         if (!audio) throw new Error("No audio");
         const fd = new FormData();
