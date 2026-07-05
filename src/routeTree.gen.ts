@@ -13,7 +13,9 @@ import { Route as ResetPasswordRouteImport } from './routes/reset-password'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as ApiVisionFactcheckRouteImport } from './routes/api/vision-factcheck'
 import { Route as ApiVisionRouteImport } from './routes/api/vision'
+import { Route as ApiTextToolRouteImport } from './routes/api/text-tool'
 import { Route as ApiSttRouteImport } from './routes/api/stt'
 import { Route as ApiGenerateVideoRouteImport } from './routes/api/generate-video'
 import { Route as ApiGenerateImageRouteImport } from './routes/api/generate-image'
@@ -32,6 +34,7 @@ import { Route as AuthenticatedChatRouteImport } from './routes/_authenticated/c
 import { Route as AuthenticatedArRouteImport } from './routes/_authenticated/ar'
 import { Route as ApiTtsLovableRouteImport } from './routes/api/tts.lovable'
 import { Route as ApiTtsElevenlabsRouteImport } from './routes/api/tts.elevenlabs'
+import { Route as AuthenticatedStudioToolIdRouteImport } from './routes/_authenticated/studio.$toolId'
 import { Route as AuthenticatedChatThreadIdRouteImport } from './routes/_authenticated/chat.$threadId'
 
 const ResetPasswordRoute = ResetPasswordRouteImport.update({
@@ -53,9 +56,19 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiVisionFactcheckRoute = ApiVisionFactcheckRouteImport.update({
+  id: '/api/vision-factcheck',
+  path: '/api/vision-factcheck',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiVisionRoute = ApiVisionRouteImport.update({
   id: '/api/vision',
   path: '/api/vision',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiTextToolRoute = ApiTextToolRouteImport.update({
+  id: '/api/text-tool',
+  path: '/api/text-tool',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiSttRoute = ApiSttRouteImport.update({
@@ -148,6 +161,12 @@ const ApiTtsElevenlabsRoute = ApiTtsElevenlabsRouteImport.update({
   path: '/api/tts/elevenlabs',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AuthenticatedStudioToolIdRoute =
+  AuthenticatedStudioToolIdRouteImport.update({
+    id: '/$toolId',
+    path: '/$toolId',
+    getParentRoute: () => AuthenticatedStudioRoute,
+  } as any)
 const AuthenticatedChatThreadIdRoute =
   AuthenticatedChatThreadIdRouteImport.update({
     id: '/$threadId',
@@ -168,15 +187,18 @@ export interface FileRoutesByFullPath {
   '/reminders': typeof AuthenticatedRemindersRoute
   '/screen': typeof AuthenticatedScreenRoute
   '/settings': typeof AuthenticatedSettingsRoute
-  '/studio': typeof AuthenticatedStudioRoute
+  '/studio': typeof AuthenticatedStudioRouteWithChildren
   '/vision': typeof AuthenticatedVisionRoute
   '/api/chat': typeof ApiChatRoute
   '/api/edit-image': typeof ApiEditImageRoute
   '/api/generate-image': typeof ApiGenerateImageRoute
   '/api/generate-video': typeof ApiGenerateVideoRoute
   '/api/stt': typeof ApiSttRoute
+  '/api/text-tool': typeof ApiTextToolRoute
   '/api/vision': typeof ApiVisionRoute
+  '/api/vision-factcheck': typeof ApiVisionFactcheckRoute
   '/chat/$threadId': typeof AuthenticatedChatThreadIdRoute
+  '/studio/$toolId': typeof AuthenticatedStudioToolIdRoute
   '/api/tts/elevenlabs': typeof ApiTtsElevenlabsRoute
   '/api/tts/lovable': typeof ApiTtsLovableRoute
 }
@@ -193,15 +215,18 @@ export interface FileRoutesByTo {
   '/reminders': typeof AuthenticatedRemindersRoute
   '/screen': typeof AuthenticatedScreenRoute
   '/settings': typeof AuthenticatedSettingsRoute
-  '/studio': typeof AuthenticatedStudioRoute
+  '/studio': typeof AuthenticatedStudioRouteWithChildren
   '/vision': typeof AuthenticatedVisionRoute
   '/api/chat': typeof ApiChatRoute
   '/api/edit-image': typeof ApiEditImageRoute
   '/api/generate-image': typeof ApiGenerateImageRoute
   '/api/generate-video': typeof ApiGenerateVideoRoute
   '/api/stt': typeof ApiSttRoute
+  '/api/text-tool': typeof ApiTextToolRoute
   '/api/vision': typeof ApiVisionRoute
+  '/api/vision-factcheck': typeof ApiVisionFactcheckRoute
   '/chat/$threadId': typeof AuthenticatedChatThreadIdRoute
+  '/studio/$toolId': typeof AuthenticatedStudioToolIdRoute
   '/api/tts/elevenlabs': typeof ApiTtsElevenlabsRoute
   '/api/tts/lovable': typeof ApiTtsLovableRoute
 }
@@ -220,15 +245,18 @@ export interface FileRoutesById {
   '/_authenticated/reminders': typeof AuthenticatedRemindersRoute
   '/_authenticated/screen': typeof AuthenticatedScreenRoute
   '/_authenticated/settings': typeof AuthenticatedSettingsRoute
-  '/_authenticated/studio': typeof AuthenticatedStudioRoute
+  '/_authenticated/studio': typeof AuthenticatedStudioRouteWithChildren
   '/_authenticated/vision': typeof AuthenticatedVisionRoute
   '/api/chat': typeof ApiChatRoute
   '/api/edit-image': typeof ApiEditImageRoute
   '/api/generate-image': typeof ApiGenerateImageRoute
   '/api/generate-video': typeof ApiGenerateVideoRoute
   '/api/stt': typeof ApiSttRoute
+  '/api/text-tool': typeof ApiTextToolRoute
   '/api/vision': typeof ApiVisionRoute
+  '/api/vision-factcheck': typeof ApiVisionFactcheckRoute
   '/_authenticated/chat/$threadId': typeof AuthenticatedChatThreadIdRoute
+  '/_authenticated/studio/$toolId': typeof AuthenticatedStudioToolIdRoute
   '/api/tts/elevenlabs': typeof ApiTtsElevenlabsRoute
   '/api/tts/lovable': typeof ApiTtsLovableRoute
 }
@@ -254,8 +282,11 @@ export interface FileRouteTypes {
     | '/api/generate-image'
     | '/api/generate-video'
     | '/api/stt'
+    | '/api/text-tool'
     | '/api/vision'
+    | '/api/vision-factcheck'
     | '/chat/$threadId'
+    | '/studio/$toolId'
     | '/api/tts/elevenlabs'
     | '/api/tts/lovable'
   fileRoutesByTo: FileRoutesByTo
@@ -279,8 +310,11 @@ export interface FileRouteTypes {
     | '/api/generate-image'
     | '/api/generate-video'
     | '/api/stt'
+    | '/api/text-tool'
     | '/api/vision'
+    | '/api/vision-factcheck'
     | '/chat/$threadId'
+    | '/studio/$toolId'
     | '/api/tts/elevenlabs'
     | '/api/tts/lovable'
   id:
@@ -305,8 +339,11 @@ export interface FileRouteTypes {
     | '/api/generate-image'
     | '/api/generate-video'
     | '/api/stt'
+    | '/api/text-tool'
     | '/api/vision'
+    | '/api/vision-factcheck'
     | '/_authenticated/chat/$threadId'
+    | '/_authenticated/studio/$toolId'
     | '/api/tts/elevenlabs'
     | '/api/tts/lovable'
   fileRoutesById: FileRoutesById
@@ -321,7 +358,9 @@ export interface RootRouteChildren {
   ApiGenerateImageRoute: typeof ApiGenerateImageRoute
   ApiGenerateVideoRoute: typeof ApiGenerateVideoRoute
   ApiSttRoute: typeof ApiSttRoute
+  ApiTextToolRoute: typeof ApiTextToolRoute
   ApiVisionRoute: typeof ApiVisionRoute
+  ApiVisionFactcheckRoute: typeof ApiVisionFactcheckRoute
   ApiTtsElevenlabsRoute: typeof ApiTtsElevenlabsRoute
   ApiTtsLovableRoute: typeof ApiTtsLovableRoute
 }
@@ -356,11 +395,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/vision-factcheck': {
+      id: '/api/vision-factcheck'
+      path: '/api/vision-factcheck'
+      fullPath: '/api/vision-factcheck'
+      preLoaderRoute: typeof ApiVisionFactcheckRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/vision': {
       id: '/api/vision'
       path: '/api/vision'
       fullPath: '/api/vision'
       preLoaderRoute: typeof ApiVisionRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/text-tool': {
+      id: '/api/text-tool'
+      path: '/api/text-tool'
+      fullPath: '/api/text-tool'
+      preLoaderRoute: typeof ApiTextToolRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/stt': {
@@ -489,6 +542,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiTtsElevenlabsRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_authenticated/studio/$toolId': {
+      id: '/_authenticated/studio/$toolId'
+      path: '/$toolId'
+      fullPath: '/studio/$toolId'
+      preLoaderRoute: typeof AuthenticatedStudioToolIdRouteImport
+      parentRoute: typeof AuthenticatedStudioRoute
+    }
     '/_authenticated/chat/$threadId': {
       id: '/_authenticated/chat/$threadId'
       path: '/$threadId'
@@ -510,6 +570,17 @@ const AuthenticatedChatRouteChildren: AuthenticatedChatRouteChildren = {
 const AuthenticatedChatRouteWithChildren =
   AuthenticatedChatRoute._addFileChildren(AuthenticatedChatRouteChildren)
 
+interface AuthenticatedStudioRouteChildren {
+  AuthenticatedStudioToolIdRoute: typeof AuthenticatedStudioToolIdRoute
+}
+
+const AuthenticatedStudioRouteChildren: AuthenticatedStudioRouteChildren = {
+  AuthenticatedStudioToolIdRoute: AuthenticatedStudioToolIdRoute,
+}
+
+const AuthenticatedStudioRouteWithChildren =
+  AuthenticatedStudioRoute._addFileChildren(AuthenticatedStudioRouteChildren)
+
 interface AuthenticatedRouteRouteChildren {
   AuthenticatedArRoute: typeof AuthenticatedArRoute
   AuthenticatedChatRoute: typeof AuthenticatedChatRouteWithChildren
@@ -520,7 +591,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedRemindersRoute: typeof AuthenticatedRemindersRoute
   AuthenticatedScreenRoute: typeof AuthenticatedScreenRoute
   AuthenticatedSettingsRoute: typeof AuthenticatedSettingsRoute
-  AuthenticatedStudioRoute: typeof AuthenticatedStudioRoute
+  AuthenticatedStudioRoute: typeof AuthenticatedStudioRouteWithChildren
   AuthenticatedVisionRoute: typeof AuthenticatedVisionRoute
 }
 
@@ -534,7 +605,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedRemindersRoute: AuthenticatedRemindersRoute,
   AuthenticatedScreenRoute: AuthenticatedScreenRoute,
   AuthenticatedSettingsRoute: AuthenticatedSettingsRoute,
-  AuthenticatedStudioRoute: AuthenticatedStudioRoute,
+  AuthenticatedStudioRoute: AuthenticatedStudioRouteWithChildren,
   AuthenticatedVisionRoute: AuthenticatedVisionRoute,
 }
 
@@ -551,7 +622,9 @@ const rootRouteChildren: RootRouteChildren = {
   ApiGenerateImageRoute: ApiGenerateImageRoute,
   ApiGenerateVideoRoute: ApiGenerateVideoRoute,
   ApiSttRoute: ApiSttRoute,
+  ApiTextToolRoute: ApiTextToolRoute,
   ApiVisionRoute: ApiVisionRoute,
+  ApiVisionFactcheckRoute: ApiVisionFactcheckRoute,
   ApiTtsElevenlabsRoute: ApiTtsElevenlabsRoute,
   ApiTtsLovableRoute: ApiTtsLovableRoute,
 }
