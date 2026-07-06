@@ -338,7 +338,7 @@ function VisionPro() {
     const caps = (track.getCapabilities?.() ?? {}) as MediaTrackCapabilities & { torch?: boolean };
     if (!caps.torch) return toast.error("Torch not supported on this device");
     try {
-      await track.applyConstraints({ advanced: [{ torch: !torchOn }] } as MediaTrackConstraints);
+      await track.applyConstraints({ advanced: [{ torch: !torchOn } as unknown as MediaTrackConstraintSet] });
       setTorchOn((t) => !t);
     } catch {
       toast.error("Couldn't toggle torch");
