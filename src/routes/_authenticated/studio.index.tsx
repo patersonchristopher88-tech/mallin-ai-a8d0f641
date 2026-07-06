@@ -13,7 +13,7 @@ import {
   toggleFavorite,
 } from "@/lib/aria/studio-favorites";
 
-export const Route = createFileRoute("/_authenticated/studio")({
+export const Route = createFileRoute("/_authenticated/studio/")({
   ssr: false,
   head: () => ({ meta: [{ title: "Studio — ARIA Creative Workspace" }] }),
   component: StudioHub,

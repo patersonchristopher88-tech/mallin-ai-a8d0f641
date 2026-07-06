@@ -22,7 +22,6 @@ import { Route as ApiGenerateImageRouteImport } from './routes/api/generate-imag
 import { Route as ApiEditImageRouteImport } from './routes/api/edit-image'
 import { Route as ApiChatRouteImport } from './routes/api/chat'
 import { Route as AuthenticatedVisionRouteImport } from './routes/_authenticated/vision'
-import { Route as AuthenticatedStudioRouteImport } from './routes/_authenticated/studio'
 import { Route as AuthenticatedSettingsRouteImport } from './routes/_authenticated/settings'
 import { Route as AuthenticatedScreenRouteImport } from './routes/_authenticated/screen'
 import { Route as AuthenticatedRemindersRouteImport } from './routes/_authenticated/reminders'
@@ -32,6 +31,7 @@ import { Route as AuthenticatedLibraryRouteImport } from './routes/_authenticate
 import { Route as AuthenticatedEditRouteImport } from './routes/_authenticated/edit'
 import { Route as AuthenticatedChatRouteImport } from './routes/_authenticated/chat'
 import { Route as AuthenticatedArRouteImport } from './routes/_authenticated/ar'
+import { Route as AuthenticatedStudioIndexRouteImport } from './routes/_authenticated/studio.index'
 import { Route as ApiTtsLovableRouteImport } from './routes/api/tts.lovable'
 import { Route as ApiTtsElevenlabsRouteImport } from './routes/api/tts.elevenlabs'
 import { Route as AuthenticatedStudioToolIdRouteImport } from './routes/_authenticated/studio.$toolId'
@@ -101,11 +101,6 @@ const AuthenticatedVisionRoute = AuthenticatedVisionRouteImport.update({
   path: '/vision',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
-const AuthenticatedStudioRoute = AuthenticatedStudioRouteImport.update({
-  id: '/studio',
-  path: '/studio',
-  getParentRoute: () => AuthenticatedRouteRoute,
-} as any)
 const AuthenticatedSettingsRoute = AuthenticatedSettingsRouteImport.update({
   id: '/settings',
   path: '/settings',
@@ -151,6 +146,12 @@ const AuthenticatedArRoute = AuthenticatedArRouteImport.update({
   path: '/ar',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedStudioIndexRoute =
+  AuthenticatedStudioIndexRouteImport.update({
+    id: '/studio/',
+    path: '/studio/',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const ApiTtsLovableRoute = ApiTtsLovableRouteImport.update({
   id: '/api/tts/lovable',
   path: '/api/tts/lovable',
@@ -163,9 +164,9 @@ const ApiTtsElevenlabsRoute = ApiTtsElevenlabsRouteImport.update({
 } as any)
 const AuthenticatedStudioToolIdRoute =
   AuthenticatedStudioToolIdRouteImport.update({
-    id: '/$toolId',
-    path: '/$toolId',
-    getParentRoute: () => AuthenticatedStudioRoute,
+    id: '/studio/$toolId',
+    path: '/studio/$toolId',
+    getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
 const AuthenticatedChatThreadIdRoute =
   AuthenticatedChatThreadIdRouteImport.update({
@@ -187,7 +188,6 @@ export interface FileRoutesByFullPath {
   '/reminders': typeof AuthenticatedRemindersRoute
   '/screen': typeof AuthenticatedScreenRoute
   '/settings': typeof AuthenticatedSettingsRoute
-  '/studio': typeof AuthenticatedStudioRouteWithChildren
   '/vision': typeof AuthenticatedVisionRoute
   '/api/chat': typeof ApiChatRoute
   '/api/edit-image': typeof ApiEditImageRoute
@@ -201,6 +201,7 @@ export interface FileRoutesByFullPath {
   '/studio/$toolId': typeof AuthenticatedStudioToolIdRoute
   '/api/tts/elevenlabs': typeof ApiTtsElevenlabsRoute
   '/api/tts/lovable': typeof ApiTtsLovableRoute
+  '/studio/': typeof AuthenticatedStudioIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -215,7 +216,6 @@ export interface FileRoutesByTo {
   '/reminders': typeof AuthenticatedRemindersRoute
   '/screen': typeof AuthenticatedScreenRoute
   '/settings': typeof AuthenticatedSettingsRoute
-  '/studio': typeof AuthenticatedStudioRouteWithChildren
   '/vision': typeof AuthenticatedVisionRoute
   '/api/chat': typeof ApiChatRoute
   '/api/edit-image': typeof ApiEditImageRoute
@@ -229,6 +229,7 @@ export interface FileRoutesByTo {
   '/studio/$toolId': typeof AuthenticatedStudioToolIdRoute
   '/api/tts/elevenlabs': typeof ApiTtsElevenlabsRoute
   '/api/tts/lovable': typeof ApiTtsLovableRoute
+  '/studio': typeof AuthenticatedStudioIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -245,7 +246,6 @@ export interface FileRoutesById {
   '/_authenticated/reminders': typeof AuthenticatedRemindersRoute
   '/_authenticated/screen': typeof AuthenticatedScreenRoute
   '/_authenticated/settings': typeof AuthenticatedSettingsRoute
-  '/_authenticated/studio': typeof AuthenticatedStudioRouteWithChildren
   '/_authenticated/vision': typeof AuthenticatedVisionRoute
   '/api/chat': typeof ApiChatRoute
   '/api/edit-image': typeof ApiEditImageRoute
@@ -259,6 +259,7 @@ export interface FileRoutesById {
   '/_authenticated/studio/$toolId': typeof AuthenticatedStudioToolIdRoute
   '/api/tts/elevenlabs': typeof ApiTtsElevenlabsRoute
   '/api/tts/lovable': typeof ApiTtsLovableRoute
+  '/_authenticated/studio/': typeof AuthenticatedStudioIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -275,7 +276,6 @@ export interface FileRouteTypes {
     | '/reminders'
     | '/screen'
     | '/settings'
-    | '/studio'
     | '/vision'
     | '/api/chat'
     | '/api/edit-image'
@@ -289,6 +289,7 @@ export interface FileRouteTypes {
     | '/studio/$toolId'
     | '/api/tts/elevenlabs'
     | '/api/tts/lovable'
+    | '/studio/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -303,7 +304,6 @@ export interface FileRouteTypes {
     | '/reminders'
     | '/screen'
     | '/settings'
-    | '/studio'
     | '/vision'
     | '/api/chat'
     | '/api/edit-image'
@@ -317,6 +317,7 @@ export interface FileRouteTypes {
     | '/studio/$toolId'
     | '/api/tts/elevenlabs'
     | '/api/tts/lovable'
+    | '/studio'
   id:
     | '__root__'
     | '/'
@@ -332,7 +333,6 @@ export interface FileRouteTypes {
     | '/_authenticated/reminders'
     | '/_authenticated/screen'
     | '/_authenticated/settings'
-    | '/_authenticated/studio'
     | '/_authenticated/vision'
     | '/api/chat'
     | '/api/edit-image'
@@ -346,6 +346,7 @@ export interface FileRouteTypes {
     | '/_authenticated/studio/$toolId'
     | '/api/tts/elevenlabs'
     | '/api/tts/lovable'
+    | '/_authenticated/studio/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -458,13 +459,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedVisionRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
-    '/_authenticated/studio': {
-      id: '/_authenticated/studio'
-      path: '/studio'
-      fullPath: '/studio'
-      preLoaderRoute: typeof AuthenticatedStudioRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
     '/_authenticated/settings': {
       id: '/_authenticated/settings'
       path: '/settings'
@@ -528,6 +522,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedArRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/studio/': {
+      id: '/_authenticated/studio/'
+      path: '/studio'
+      fullPath: '/studio/'
+      preLoaderRoute: typeof AuthenticatedStudioIndexRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/api/tts/lovable': {
       id: '/api/tts/lovable'
       path: '/api/tts/lovable'
@@ -544,10 +545,10 @@ declare module '@tanstack/react-router' {
     }
     '/_authenticated/studio/$toolId': {
       id: '/_authenticated/studio/$toolId'
-      path: '/$toolId'
+      path: '/studio/$toolId'
       fullPath: '/studio/$toolId'
       preLoaderRoute: typeof AuthenticatedStudioToolIdRouteImport
-      parentRoute: typeof AuthenticatedStudioRoute
+      parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/chat/$threadId': {
       id: '/_authenticated/chat/$threadId'
@@ -570,17 +571,6 @@ const AuthenticatedChatRouteChildren: AuthenticatedChatRouteChildren = {
 const AuthenticatedChatRouteWithChildren =
   AuthenticatedChatRoute._addFileChildren(AuthenticatedChatRouteChildren)
 
-interface AuthenticatedStudioRouteChildren {
-  AuthenticatedStudioToolIdRoute: typeof AuthenticatedStudioToolIdRoute
-}
-
-const AuthenticatedStudioRouteChildren: AuthenticatedStudioRouteChildren = {
-  AuthenticatedStudioToolIdRoute: AuthenticatedStudioToolIdRoute,
-}
-
-const AuthenticatedStudioRouteWithChildren =
-  AuthenticatedStudioRoute._addFileChildren(AuthenticatedStudioRouteChildren)
-
 interface AuthenticatedRouteRouteChildren {
   AuthenticatedArRoute: typeof AuthenticatedArRoute
   AuthenticatedChatRoute: typeof AuthenticatedChatRouteWithChildren
@@ -591,8 +581,9 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedRemindersRoute: typeof AuthenticatedRemindersRoute
   AuthenticatedScreenRoute: typeof AuthenticatedScreenRoute
   AuthenticatedSettingsRoute: typeof AuthenticatedSettingsRoute
-  AuthenticatedStudioRoute: typeof AuthenticatedStudioRouteWithChildren
   AuthenticatedVisionRoute: typeof AuthenticatedVisionRoute
+  AuthenticatedStudioToolIdRoute: typeof AuthenticatedStudioToolIdRoute
+  AuthenticatedStudioIndexRoute: typeof AuthenticatedStudioIndexRoute
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
@@ -605,8 +596,9 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedRemindersRoute: AuthenticatedRemindersRoute,
   AuthenticatedScreenRoute: AuthenticatedScreenRoute,
   AuthenticatedSettingsRoute: AuthenticatedSettingsRoute,
-  AuthenticatedStudioRoute: AuthenticatedStudioRouteWithChildren,
   AuthenticatedVisionRoute: AuthenticatedVisionRoute,
+  AuthenticatedStudioToolIdRoute: AuthenticatedStudioToolIdRoute,
+  AuthenticatedStudioIndexRoute: AuthenticatedStudioIndexRoute,
 }
 
 const AuthenticatedRouteRouteWithChildren =
