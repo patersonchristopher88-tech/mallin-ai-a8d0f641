@@ -1,11 +1,11 @@
 import { Link, useRouterState } from "@tanstack/react-router";
-import { MessageSquare, Sparkles, Image as ImageIcon, Music, Settings } from "lucide-react";
+import { MessageSquare, Sparkles, Image as ImageIcon, Music, Settings, Plus, Compass } from "lucide-react";
 import { motion } from "motion/react";
 
 const TABS = [
   { to: "/chat", label: "Chat", Icon: MessageSquare, match: "/chat" },
   { to: "/studio", label: "Studio", Icon: Sparkles, match: "/studio" },
-  { to: "/media", label: "Media", Icon: Music, match: "/media" },
+  { to: "/vision", label: "Vision", Icon: Compass, match: "/vision" },
   { to: "/library", label: "Library", Icon: ImageIcon, match: "/library" },
   { to: "/settings", label: "Settings", Icon: Settings, match: "/settings" },
 ] as const;
@@ -25,6 +25,14 @@ export function BottomTabs() {
             "linear-gradient(to top, hsl(var(--mood) / 0.18), transparent)",
         }}
       />
+      <div className="mx-auto mb-3 flex max-w-sm justify-center px-4">
+        <Link
+          to="/chat"
+          className="hud-corner flex items-center gap-2 rounded-full border border-primary/40 bg-primary/15 px-4 py-2.5 font-display text-[10px] uppercase tracking-[0.35em] text-primary shadow-[0_0_18px_hsl(var(--primary)/0.2)]"
+        >
+          <Plus className="h-4 w-4" /> New command
+        </Link>
+      </div>
       <div className="hud-glass border-t border-primary/25">
         <ul className="relative mx-auto grid max-w-md grid-cols-5">
           {TABS.map(({ to, label, Icon, match }) => {

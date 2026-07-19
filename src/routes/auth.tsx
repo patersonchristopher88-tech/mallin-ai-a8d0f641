@@ -34,14 +34,26 @@ function AuthPage() {
     setLoading(true);
     try {
       if (mode === "signup") {
-        const { error } = await supabase.auth.signUp({
+        const { data, error } = await supabase.auth.signUp({
           email,
           password,
-          options: { emailRedirectTo: window.location.origin },
+          options: {
+            emailRedirectTo: window.location.origin,
+            data: { signup_source: "email_password" },
+          },
         });
+
         if (error) throw error;
-        toast.success("Account created. Initializing ARIA…");
-        navigate({ to: "/chat" });
+
+        if (data.session) {
+          toast.success("Account ready. Welcome to ARIA.");
+          navigate({ to: "/chat" });
+          return;
+        }
+
+        toast.success("Account created. You can sign in immediately.");
+        setMode("signin");
+        setPassword("");
       } else if (mode === "forgot") {
         const { error } = await supabase.auth.resetPasswordForEmail(email, {
           redirectTo: `${window.location.origin}/reset-password`,
@@ -106,9 +118,7 @@ function AuthPage() {
           </h1>
           <p className="mt-2 text-sm text-muted-foreground">
             {mode === "signup"
-              ? "Provision a new ARIA profile in seconds."
-              : mode === "forgot"
-                ? "Enter your email and we'll send a secure reset link."
+              ? "Create your account instantly with email and password — no verification step required."
                 : "Resume your session and pick up where you left off."}
           </p>
 
@@ -161,7 +171,7 @@ function AuthPage() {
               {loading
                 ? "…"
                 : mode === "signup"
-                  ? "Initialize"
+                  ? "Create account"
                   : mode === "forgot"
                     ? "Send reset link"
                     : "Sign In"}

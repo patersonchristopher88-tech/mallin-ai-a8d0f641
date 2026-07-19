@@ -10,7 +10,7 @@ import { ThreadDrawer } from "@/components/aria/ThreadDrawer";
 import { VoiceMic } from "@/components/aria/VoiceMic";
 import { supabase } from "@/integrations/supabase/client";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { Send, Square, Menu, Volume2, VolumeX, Paperclip, X, Camera, Glasses, Bell, MonitorUp, Wand2 } from "lucide-react";
+import { Send, Square, Menu, Volume2, VolumeX, Paperclip, X, Camera, Glasses, Bell, MonitorUp, Wand2, Sparkles, Search, FolderPlus } from "lucide-react";
 import { Link } from "@tanstack/react-router";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
@@ -91,6 +91,9 @@ function ChatRuntime({
   const [attachments, setAttachments] = useState<
     Array<{ url: string; mediaType: string; name: string; uploading?: boolean; progress?: number }>
   >([]);
+  const [dragActive, setDragActive] = useState(false);
+  const [searchOpen, setSearchOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
   const scrollRef = useRef<HTMLDivElement | null>(null);
   const lastSpokenIdRef = useRef<string | null>(null);
   const audioRef = useRef<HTMLAudioElement | null>(null);
@@ -318,6 +321,24 @@ function ChatRuntime({
     }
   }
 
+  function handleDrop(event: React.DragEvent<HTMLDivElement>) {
+    event.preventDefault();
+    setDragActive(false);
+    void handleFiles(event.dataTransfer.files);
+  }
+
+  const filteredMessages = useMemo(() => {
+    const query = searchQuery.trim().toLowerCase();
+    if (!query) return messages;
+    return messages.filter((message) => {
+      const text = message.parts
+        .map((part) => (part.type === "text" ? part.text : ""))
+        .join(" ")
+        .toLowerCase();
+      return text.includes(query);
+    });
+  }, [messages, searchQuery]);
+
   return (
     <div className="flex min-h-0 flex-1 flex-col">
       {/* Compact mobile HUD header */}
@@ -350,23 +371,51 @@ function ChatRuntime({
             <PersonaSwitcher current={persona} assistantName={assistantName} />
           )}
         </div>
-        <button
-          onClick={() => {
-            setVoiceMode((v) => !v);
-            if (voiceMode) {
-              audioRef.current?.pause();
-            }
-          }}
-          aria-label="Toggle voice mode"
-          className={`grid h-10 w-10 place-items-center rounded-lg border transition ${
-            voiceMode
-              ? "border-accent bg-accent/15 text-accent"
-              : "border-primary/30 bg-card/60 text-primary"
-          }`}
-        >
-          {voiceMode ? <Volume2 className="h-4 w-4" /> : <VolumeX className="h-4 w-4" />}
-        </button>
+        <div className="flex items-center gap-1.5">
+          <button
+            onClick={() => setSearchOpen((v) => !v)}
+            aria-label="Search chats"
+            className="grid h-10 w-10 place-items-center rounded-lg border border-primary/30 bg-card/60 text-primary"
+          >
+            <Search className="h-4 w-4" />
+          </button>
+          <button
+            onClick={() => {
+              setVoiceMode((v) => !v);
+              if (voiceMode) {
+                audioRef.current?.pause();
+              }
+            }}
+            aria-label="Toggle voice mode"
+            className={`grid h-10 w-10 place-items-center rounded-lg border transition ${
+              voiceMode
+                ? "border-accent bg-accent/15 text-accent"
+                : "border-primary/30 bg-card/60 text-primary"
+            }`}
+          >
+            {voiceMode ? <Volume2 className="h-4 w-4" /> : <VolumeX className="h-4 w-4" />}
+          </button>
+        </div>
       </div>
+
+      {searchOpen && (
+        <div className="border-b border-primary/15 bg-background/90 px-4 py-3 backdrop-blur">
+          <div className="mx-auto flex max-w-3xl items-center gap-2 rounded-full border border-primary/25 bg-card/60 px-3 py-2">
+            <Search className="h-4 w-4 text-primary/70" />
+            <input
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="Search this conversation…"
+              className="flex-1 bg-transparent text-sm text-foreground outline-none placeholder:text-muted-foreground/60"
+            />
+            {searchQuery && (
+              <button onClick={() => setSearchQuery("")} className="text-muted-foreground">
+                <X className="h-4 w-4" />
+              </button>
+            )}
+          </div>
+        </div>
+      )}
 
       {/* Messages */}
       <div ref={scrollRef} className="flex-1 overflow-y-auto px-4 py-5">
@@ -399,7 +448,7 @@ function ChatRuntime({
           )}
 
           <AnimatePresence initial={false}>
-            {messages.map((m) => (
+            {filteredMessages.map((m) => (
               <motion.div
                 key={m.id}
                 layout
@@ -441,7 +490,15 @@ function ChatRuntime({
 
 
       {/* Composer */}
-      <div className="relative border-t border-primary/15 bg-background/70 px-3 py-3 backdrop-blur-xl">
+      <div
+        onDragOver={(e) => {
+          e.preventDefault();
+          setDragActive(true);
+        }}
+        onDragLeave={() => setDragActive(false)}
+        onDrop={handleDrop}
+        className={`relative border-t border-primary/15 bg-background/70 px-3 py-3 backdrop-blur-xl transition ${dragActive ? "ring-1 ring-primary/50" : ""}`}
+      >
         <div className="pointer-events-none absolute inset-x-0 -top-px h-px bg-gradient-to-r from-transparent via-primary/60 to-transparent" />
         <input
           ref={fileInputRef}
@@ -454,6 +511,11 @@ function ChatRuntime({
             e.target.value = "";
           }}
         />
+        {dragActive && (
+          <div className="mx-auto mb-3 flex max-w-3xl items-center justify-center rounded-2xl border border-dashed border-primary/40 bg-primary/10 px-3 py-3 text-sm text-primary">
+            <FolderPlus className="mr-2 h-4 w-4" /> Drop files here to attach them
+          </div>
+        )}
         {attachments.length > 0 && (
           <div className="mx-auto mb-2 flex max-w-3xl flex-wrap gap-2">
             {attachments.map((a, i) => (

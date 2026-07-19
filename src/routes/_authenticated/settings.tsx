@@ -8,9 +8,11 @@ import { useTheme } from "@/components/aria/ThemeProvider";
 import { useEffect, useState } from "react";
 import { JarvisOrb } from "@/components/aria/JarvisOrb";
 import { toast } from "sonner";
-import { ArrowLeft, Play } from "lucide-react";
+import { ArrowLeft, Play, Brain, Trash2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { ELEVENLABS_VOICES } from "@/lib/aria/elevenlabs-voices";
+import { listMemories, deleteMemory } from "@/lib/aria/memories.functions";
+import { useQuery as useReactQuery } from "@tanstack/react-query";
 
 export const Route = createFileRoute("/_authenticated/settings")({
   ssr: false,
@@ -22,11 +24,14 @@ function SettingsPage() {
   const qc = useQueryClient();
   const profileFn = useServerFn(getProfile);
   const updateFn = useServerFn(updateProfile);
+  const listMemoriesFn = useServerFn(listMemories);
+  const deleteMemoryFn = useServerFn(deleteMemory);
   const { setTheme } = useTheme();
 
   const profile = useQuery({ queryKey: ["profile"], queryFn: () => profileFn() });
+  const memories = useReactQuery({ queryKey: ["memories"], queryFn: () => listMemoriesFn() });
 
-  const [tab, setTab] = useState<"assistant" | "appearance" | "voice" | "account">("assistant");
+  const [tab, setTab] = useState<"assistant" | "appearance" | "voice" | "memory" | "account">("assistant");
   const [draft, setDraft] = useState<Record<string, unknown>>({});
 
   useEffect(() => {
@@ -43,6 +48,15 @@ function SettingsPage() {
       toast.success("Settings saved");
     },
     onError: (e) => toast.error(e instanceof Error ? e.message : "Save failed"),
+  });
+
+  const deleteMemoryMutation = useMutation({
+    mutationFn: (id: string) => deleteMemoryFn({ data: { id } }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["memories"] });
+      toast.success("Memory removed");
+    },
+    onError: (e) => toast.error(e instanceof Error ? e.message : "Could not remove memory"),
   });
 
   function update(patch: Record<string, unknown>) {
@@ -88,6 +102,7 @@ function SettingsPage() {
     { key: "assistant", label: "Assistant" },
     { key: "appearance", label: "Appearance" },
     { key: "voice", label: "Voice" },
+    { key: "memory", label: "Memory" },
     { key: "account", label: "Account" },
   ];
 
@@ -345,6 +360,61 @@ function SettingsPage() {
             )}
 
             <WakeWordAndHotkeyPanel />
+          </div>
+        )}
+
+        {tab === "memory" && (
+          <div className="space-y-5">
+            <div className="rounded-lg border border-primary/25 bg-card/40 p-4">
+              <div className="flex items-center justify-between gap-3">
+                <div>
+                  <div className="font-display text-sm uppercase tracking-widest text-primary">Memory settings</div>
+                  <p className="mt-1 text-sm text-muted-foreground">
+                    ARIA can remember preferences, goals, and personal context with your permission.
+                  </p>
+                </div>
+                <button
+                  onClick={() => update({ memory_enabled: !((merged.memory_enabled as boolean | undefined) ?? true) })}
+                  className={`rounded-full border px-3 py-1.5 font-mono text-[10px] uppercase tracking-widest transition ${
+                    (merged.memory_enabled as boolean | undefined) ?? true
+                      ? "border-primary bg-primary/20 text-primary"
+                      : "border-border bg-card text-muted-foreground"
+                  }`}
+                >
+                  {(merged.memory_enabled as boolean | undefined) ?? true ? "Enabled" : "Disabled"}
+                </button>
+              </div>
+            </div>
+
+            <div className="rounded-lg border border-primary/25 bg-card/40 p-4">
+              <div className="flex items-center gap-2 text-primary">
+                <Brain className="h-4 w-4" />
+                <div className="font-display text-sm uppercase tracking-widest">Stored memories</div>
+              </div>
+              <div className="mt-3 space-y-2">
+                {(memories.data ?? []).length === 0 ? (
+                  <div className="rounded-lg border border-dashed border-primary/20 p-4 text-sm text-muted-foreground">
+                    No memories saved yet. ARIA will suggest durable facts to remember when you opt in.
+                  </div>
+                ) : (
+                  (memories.data ?? []).map((memory: { id: string; content: string; kind?: string }) => (
+                    <div key={memory.id} className="flex items-start justify-between gap-3 rounded-lg border border-primary/15 bg-background/50 p-3">
+                      <div>
+                        <div className="font-mono text-[10px] uppercase tracking-[0.3em] text-primary/70">{memory.kind ?? "fact"}</div>
+                        <div className="mt-1 text-sm text-foreground">{memory.content}</div>
+                      </div>
+                      <button
+                        onClick={() => deleteMemoryMutation.mutate(memory.id)}
+                        className="rounded-full border border-destructive/30 bg-destructive/10 p-2 text-destructive"
+                        aria-label="Delete memory"
+                      >
+                        <Trash2 className="h-3.5 w-3.5" />
+                      </button>
+                    </div>
+                  ))
+                )}
+              </div>
+            </div>
           </div>
         )}
 
