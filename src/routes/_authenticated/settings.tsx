@@ -216,7 +216,10 @@ function SettingsPage() {
                 <option value="openai/gpt-5.5">GPT-5.5 · top reasoning</option>
               </select>
             </Field>
+
+            <MemoryManager />
           </div>
+
         )}
 
         {tab === "appearance" && (
