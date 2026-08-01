@@ -90,7 +90,7 @@ export default function Home() {
       chats: (threads.data ?? []).filter((t) => t.title.toLowerCase().includes(term)).slice(0, 5),
       tools: STUDIO_TOOLS.filter(
         (t) =>
-          t.name.toLowerCase().includes(term) || t.description.toLowerCase().includes(term),
+          t.name.toLowerCase().includes(term) || t.tagline.toLowerCase().includes(term),
       ).slice(0, 6),
     };
   }, [q, threads.data]);
