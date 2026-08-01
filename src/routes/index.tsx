@@ -44,7 +44,7 @@ function Landing() {
         </div>
         <div className="hidden font-mono text-xs text-muted-foreground sm:flex sm:gap-6">
           <span>SYS · ONLINE</span>
-          <span>{now.toISOString().slice(11, 19)} UTC</span>
+          <span>{now ? `${now.toISOString().slice(11, 19)} UTC` : "--:--:-- UTC"}</span>
         </div>
         <Link
           to={authed ? "/chat" : "/auth"}
