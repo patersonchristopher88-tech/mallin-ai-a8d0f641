@@ -21,7 +21,7 @@ export const Route = createFileRoute("/")({
 function Landing() {
   const navigate = useNavigate();
   const [authed, setAuthed] = useState<boolean | null>(null);
-  const [now, setNow] = useState(() => new Date());
+  const [now, setNow] = useState<Date | null>(null);
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => setAuthed(!!data.session));
@@ -30,6 +30,7 @@ function Landing() {
   }, []);
 
   useEffect(() => {
+    setNow(new Date());
     const t = setInterval(() => setNow(new Date()), 1000);
     return () => clearInterval(t);
   }, []);
