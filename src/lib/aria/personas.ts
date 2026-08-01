@@ -4,6 +4,12 @@ export type PersonaKey =
   | "gideon"
   | "karen"
   | "chatgpt"
+  | "professional"
+  | "creative"
+  | "tutor"
+  | "coach"
+  | "coder"
+  | "travel"
   | "custom";
 
 export interface Persona {
