@@ -21,7 +21,7 @@ export const Route = createFileRoute("/")({
 function Landing() {
   const navigate = useNavigate();
   const [authed, setAuthed] = useState<boolean | null>(null);
-  const [now, setNow] = useState(() => new Date());
+  const [now, setNow] = useState<Date | null>(null);
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => setAuthed(!!data.session));
@@ -30,6 +30,7 @@ function Landing() {
   }, []);
 
   useEffect(() => {
+    setNow(new Date());
     const t = setInterval(() => setNow(new Date()), 1000);
     return () => clearInterval(t);
   }, []);
@@ -43,7 +44,7 @@ function Landing() {
         </div>
         <div className="hidden font-mono text-xs text-muted-foreground sm:flex sm:gap-6">
           <span>SYS · ONLINE</span>
-          <span>{now.toISOString().slice(11, 19)} UTC</span>
+          <span>{now ? `${now.toISOString().slice(11, 19)} UTC` : "--:--:-- UTC"}</span>
         </div>
         <Link
           to={authed ? "/chat" : "/auth"}

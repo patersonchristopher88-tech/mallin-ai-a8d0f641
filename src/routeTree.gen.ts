@@ -26,9 +26,11 @@ import { Route as AuthenticatedStudioRouteImport } from './routes/_authenticated
 import { Route as AuthenticatedSettingsRouteImport } from './routes/_authenticated/settings'
 import { Route as AuthenticatedScreenRouteImport } from './routes/_authenticated/screen'
 import { Route as AuthenticatedRemindersRouteImport } from './routes/_authenticated/reminders'
+import { Route as AuthenticatedProjectsRouteImport } from './routes/_authenticated/projects'
 import { Route as AuthenticatedMusicRouteImport } from './routes/_authenticated/music'
 import { Route as AuthenticatedMediaRouteImport } from './routes/_authenticated/media'
 import { Route as AuthenticatedLibraryRouteImport } from './routes/_authenticated/library'
+import { Route as AuthenticatedHomeRouteImport } from './routes/_authenticated/home'
 import { Route as AuthenticatedEditRouteImport } from './routes/_authenticated/edit'
 import { Route as AuthenticatedChatRouteImport } from './routes/_authenticated/chat'
 import { Route as AuthenticatedArRouteImport } from './routes/_authenticated/ar'
@@ -122,6 +124,11 @@ const AuthenticatedRemindersRoute = AuthenticatedRemindersRouteImport.update({
   path: '/reminders',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedProjectsRoute = AuthenticatedProjectsRouteImport.update({
+  id: '/projects',
+  path: '/projects',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const AuthenticatedMusicRoute = AuthenticatedMusicRouteImport.update({
   id: '/music',
   path: '/music',
@@ -135,6 +142,11 @@ const AuthenticatedMediaRoute = AuthenticatedMediaRouteImport.update({
 const AuthenticatedLibraryRoute = AuthenticatedLibraryRouteImport.update({
   id: '/library',
   path: '/library',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedHomeRoute = AuthenticatedHomeRouteImport.update({
+  id: '/home',
+  path: '/home',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 const AuthenticatedEditRoute = AuthenticatedEditRouteImport.update({
@@ -188,9 +200,11 @@ export interface FileRoutesByFullPath {
   '/ar': typeof AuthenticatedArRoute
   '/chat': typeof AuthenticatedChatRouteWithChildren
   '/edit': typeof AuthenticatedEditRoute
+  '/home': typeof AuthenticatedHomeRoute
   '/library': typeof AuthenticatedLibraryRoute
   '/media': typeof AuthenticatedMediaRoute
   '/music': typeof AuthenticatedMusicRoute
+  '/projects': typeof AuthenticatedProjectsRoute
   '/reminders': typeof AuthenticatedRemindersRoute
   '/screen': typeof AuthenticatedScreenRoute
   '/settings': typeof AuthenticatedSettingsRoute
@@ -217,9 +231,11 @@ export interface FileRoutesByTo {
   '/ar': typeof AuthenticatedArRoute
   '/chat': typeof AuthenticatedChatRouteWithChildren
   '/edit': typeof AuthenticatedEditRoute
+  '/home': typeof AuthenticatedHomeRoute
   '/library': typeof AuthenticatedLibraryRoute
   '/media': typeof AuthenticatedMediaRoute
   '/music': typeof AuthenticatedMusicRoute
+  '/projects': typeof AuthenticatedProjectsRoute
   '/reminders': typeof AuthenticatedRemindersRoute
   '/screen': typeof AuthenticatedScreenRoute
   '/settings': typeof AuthenticatedSettingsRoute
@@ -247,9 +263,11 @@ export interface FileRoutesById {
   '/_authenticated/ar': typeof AuthenticatedArRoute
   '/_authenticated/chat': typeof AuthenticatedChatRouteWithChildren
   '/_authenticated/edit': typeof AuthenticatedEditRoute
+  '/_authenticated/home': typeof AuthenticatedHomeRoute
   '/_authenticated/library': typeof AuthenticatedLibraryRoute
   '/_authenticated/media': typeof AuthenticatedMediaRoute
   '/_authenticated/music': typeof AuthenticatedMusicRoute
+  '/_authenticated/projects': typeof AuthenticatedProjectsRoute
   '/_authenticated/reminders': typeof AuthenticatedRemindersRoute
   '/_authenticated/screen': typeof AuthenticatedScreenRoute
   '/_authenticated/settings': typeof AuthenticatedSettingsRoute
@@ -278,9 +296,11 @@ export interface FileRouteTypes {
     | '/ar'
     | '/chat'
     | '/edit'
+    | '/home'
     | '/library'
     | '/media'
     | '/music'
+    | '/projects'
     | '/reminders'
     | '/screen'
     | '/settings'
@@ -307,9 +327,11 @@ export interface FileRouteTypes {
     | '/ar'
     | '/chat'
     | '/edit'
+    | '/home'
     | '/library'
     | '/media'
     | '/music'
+    | '/projects'
     | '/reminders'
     | '/screen'
     | '/settings'
@@ -336,9 +358,11 @@ export interface FileRouteTypes {
     | '/_authenticated/ar'
     | '/_authenticated/chat'
     | '/_authenticated/edit'
+    | '/_authenticated/home'
     | '/_authenticated/library'
     | '/_authenticated/media'
     | '/_authenticated/music'
+    | '/_authenticated/projects'
     | '/_authenticated/reminders'
     | '/_authenticated/screen'
     | '/_authenticated/settings'
@@ -497,6 +521,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedRemindersRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/projects': {
+      id: '/_authenticated/projects'
+      path: '/projects'
+      fullPath: '/projects'
+      preLoaderRoute: typeof AuthenticatedProjectsRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/music': {
       id: '/_authenticated/music'
       path: '/music'
@@ -516,6 +547,13 @@ declare module '@tanstack/react-router' {
       path: '/library'
       fullPath: '/library'
       preLoaderRoute: typeof AuthenticatedLibraryRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/home': {
+      id: '/_authenticated/home'
+      path: '/home'
+      fullPath: '/home'
+      preLoaderRoute: typeof AuthenticatedHomeRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/edit': {
@@ -605,9 +643,11 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedArRoute: typeof AuthenticatedArRoute
   AuthenticatedChatRoute: typeof AuthenticatedChatRouteWithChildren
   AuthenticatedEditRoute: typeof AuthenticatedEditRoute
+  AuthenticatedHomeRoute: typeof AuthenticatedHomeRoute
   AuthenticatedLibraryRoute: typeof AuthenticatedLibraryRoute
   AuthenticatedMediaRoute: typeof AuthenticatedMediaRoute
   AuthenticatedMusicRoute: typeof AuthenticatedMusicRoute
+  AuthenticatedProjectsRoute: typeof AuthenticatedProjectsRoute
   AuthenticatedRemindersRoute: typeof AuthenticatedRemindersRoute
   AuthenticatedScreenRoute: typeof AuthenticatedScreenRoute
   AuthenticatedSettingsRoute: typeof AuthenticatedSettingsRoute
@@ -619,9 +659,11 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedArRoute: AuthenticatedArRoute,
   AuthenticatedChatRoute: AuthenticatedChatRouteWithChildren,
   AuthenticatedEditRoute: AuthenticatedEditRoute,
+  AuthenticatedHomeRoute: AuthenticatedHomeRoute,
   AuthenticatedLibraryRoute: AuthenticatedLibraryRoute,
   AuthenticatedMediaRoute: AuthenticatedMediaRoute,
   AuthenticatedMusicRoute: AuthenticatedMusicRoute,
+  AuthenticatedProjectsRoute: AuthenticatedProjectsRoute,
   AuthenticatedRemindersRoute: AuthenticatedRemindersRoute,
   AuthenticatedScreenRoute: AuthenticatedScreenRoute,
   AuthenticatedSettingsRoute: AuthenticatedSettingsRoute,

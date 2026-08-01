@@ -11,6 +11,7 @@ import { toast } from "sonner";
 import { ArrowLeft, Play } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { ELEVENLABS_VOICES } from "@/lib/aria/elevenlabs-voices";
+import { MemoryManager } from "@/components/aria/MemoryManager";
 
 export const Route = createFileRoute("/_authenticated/settings")({
   ssr: false,
@@ -216,7 +217,10 @@ function SettingsPage() {
                 <option value="openai/gpt-5.5">GPT-5.5 · top reasoning</option>
               </select>
             </Field>
+
+            <MemoryManager />
           </div>
+
         )}
 
         {tab === "appearance" && (
