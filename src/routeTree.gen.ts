@@ -29,6 +29,7 @@ import { Route as AuthenticatedRemindersRouteImport } from './routes/_authentica
 import { Route as AuthenticatedMusicRouteImport } from './routes/_authenticated/music'
 import { Route as AuthenticatedMediaRouteImport } from './routes/_authenticated/media'
 import { Route as AuthenticatedLibraryRouteImport } from './routes/_authenticated/library'
+import { Route as AuthenticatedHomeRouteImport } from './routes/_authenticated/home'
 import { Route as AuthenticatedEditRouteImport } from './routes/_authenticated/edit'
 import { Route as AuthenticatedChatRouteImport } from './routes/_authenticated/chat'
 import { Route as AuthenticatedArRouteImport } from './routes/_authenticated/ar'
@@ -137,6 +138,11 @@ const AuthenticatedLibraryRoute = AuthenticatedLibraryRouteImport.update({
   path: '/library',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedHomeRoute = AuthenticatedHomeRouteImport.update({
+  id: '/home',
+  path: '/home',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const AuthenticatedEditRoute = AuthenticatedEditRouteImport.update({
   id: '/edit',
   path: '/edit',
@@ -188,6 +194,7 @@ export interface FileRoutesByFullPath {
   '/ar': typeof AuthenticatedArRoute
   '/chat': typeof AuthenticatedChatRouteWithChildren
   '/edit': typeof AuthenticatedEditRoute
+  '/home': typeof AuthenticatedHomeRoute
   '/library': typeof AuthenticatedLibraryRoute
   '/media': typeof AuthenticatedMediaRoute
   '/music': typeof AuthenticatedMusicRoute
@@ -217,6 +224,7 @@ export interface FileRoutesByTo {
   '/ar': typeof AuthenticatedArRoute
   '/chat': typeof AuthenticatedChatRouteWithChildren
   '/edit': typeof AuthenticatedEditRoute
+  '/home': typeof AuthenticatedHomeRoute
   '/library': typeof AuthenticatedLibraryRoute
   '/media': typeof AuthenticatedMediaRoute
   '/music': typeof AuthenticatedMusicRoute
@@ -247,6 +255,7 @@ export interface FileRoutesById {
   '/_authenticated/ar': typeof AuthenticatedArRoute
   '/_authenticated/chat': typeof AuthenticatedChatRouteWithChildren
   '/_authenticated/edit': typeof AuthenticatedEditRoute
+  '/_authenticated/home': typeof AuthenticatedHomeRoute
   '/_authenticated/library': typeof AuthenticatedLibraryRoute
   '/_authenticated/media': typeof AuthenticatedMediaRoute
   '/_authenticated/music': typeof AuthenticatedMusicRoute
@@ -278,6 +287,7 @@ export interface FileRouteTypes {
     | '/ar'
     | '/chat'
     | '/edit'
+    | '/home'
     | '/library'
     | '/media'
     | '/music'
@@ -307,6 +317,7 @@ export interface FileRouteTypes {
     | '/ar'
     | '/chat'
     | '/edit'
+    | '/home'
     | '/library'
     | '/media'
     | '/music'
@@ -336,6 +347,7 @@ export interface FileRouteTypes {
     | '/_authenticated/ar'
     | '/_authenticated/chat'
     | '/_authenticated/edit'
+    | '/_authenticated/home'
     | '/_authenticated/library'
     | '/_authenticated/media'
     | '/_authenticated/music'
@@ -518,6 +530,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedLibraryRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/home': {
+      id: '/_authenticated/home'
+      path: '/home'
+      fullPath: '/home'
+      preLoaderRoute: typeof AuthenticatedHomeRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/edit': {
       id: '/_authenticated/edit'
       path: '/edit'
@@ -605,6 +624,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedArRoute: typeof AuthenticatedArRoute
   AuthenticatedChatRoute: typeof AuthenticatedChatRouteWithChildren
   AuthenticatedEditRoute: typeof AuthenticatedEditRoute
+  AuthenticatedHomeRoute: typeof AuthenticatedHomeRoute
   AuthenticatedLibraryRoute: typeof AuthenticatedLibraryRoute
   AuthenticatedMediaRoute: typeof AuthenticatedMediaRoute
   AuthenticatedMusicRoute: typeof AuthenticatedMusicRoute
@@ -619,6 +639,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedArRoute: AuthenticatedArRoute,
   AuthenticatedChatRoute: AuthenticatedChatRouteWithChildren,
   AuthenticatedEditRoute: AuthenticatedEditRoute,
+  AuthenticatedHomeRoute: AuthenticatedHomeRoute,
   AuthenticatedLibraryRoute: AuthenticatedLibraryRoute,
   AuthenticatedMediaRoute: AuthenticatedMediaRoute,
   AuthenticatedMusicRoute: AuthenticatedMusicRoute,
