@@ -360,7 +360,11 @@ function CallPage() {
     try {
       await Promise.all([
         ...summary.memories.map((content) => addMemoryFn({ data: { content } })),
-        ...summary.reminders.map((title) => createReminderFn({ data: { title } })),
+        ...summary.reminders.map((text) =>
+          createReminderFn({
+            data: { text, due_at: new Date(Date.now() + 60 * 60 * 1000).toISOString() },
+          }),
+        ),
       ]);
       toast.success("Call summary saved");
     } catch (err) {
