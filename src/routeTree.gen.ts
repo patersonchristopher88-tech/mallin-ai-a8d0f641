@@ -21,6 +21,7 @@ import { Route as ApiGenerateVideoRouteImport } from './routes/api/generate-vide
 import { Route as ApiGenerateImageRouteImport } from './routes/api/generate-image'
 import { Route as ApiEditImageRouteImport } from './routes/api/edit-image'
 import { Route as ApiChatRouteImport } from './routes/api/chat'
+import { Route as ApiCallRouteImport } from './routes/api/call'
 import { Route as AuthenticatedVisionRouteImport } from './routes/_authenticated/vision'
 import { Route as AuthenticatedStudioRouteImport } from './routes/_authenticated/studio'
 import { Route as AuthenticatedSettingsRouteImport } from './routes/_authenticated/settings'
@@ -33,6 +34,7 @@ import { Route as AuthenticatedLibraryRouteImport } from './routes/_authenticate
 import { Route as AuthenticatedHomeRouteImport } from './routes/_authenticated/home'
 import { Route as AuthenticatedEditRouteImport } from './routes/_authenticated/edit'
 import { Route as AuthenticatedChatRouteImport } from './routes/_authenticated/chat'
+import { Route as AuthenticatedCallRouteImport } from './routes/_authenticated/call'
 import { Route as AuthenticatedArRouteImport } from './routes/_authenticated/ar'
 import { Route as AuthenticatedStudioIndexRouteImport } from './routes/_authenticated/studio.index'
 import { Route as ApiTtsLovableRouteImport } from './routes/api/tts.lovable'
@@ -99,6 +101,11 @@ const ApiChatRoute = ApiChatRouteImport.update({
   path: '/api/chat',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiCallRoute = ApiCallRouteImport.update({
+  id: '/api/call',
+  path: '/api/call',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AuthenticatedVisionRoute = AuthenticatedVisionRouteImport.update({
   id: '/vision',
   path: '/vision',
@@ -159,6 +166,11 @@ const AuthenticatedChatRoute = AuthenticatedChatRouteImport.update({
   path: '/chat',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedCallRoute = AuthenticatedCallRouteImport.update({
+  id: '/call',
+  path: '/call',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const AuthenticatedArRoute = AuthenticatedArRouteImport.update({
   id: '/ar',
   path: '/ar',
@@ -198,6 +210,7 @@ export interface FileRoutesByFullPath {
   '/auth': typeof AuthRoute
   '/reset-password': typeof ResetPasswordRoute
   '/ar': typeof AuthenticatedArRoute
+  '/call': typeof AuthenticatedCallRoute
   '/chat': typeof AuthenticatedChatRouteWithChildren
   '/edit': typeof AuthenticatedEditRoute
   '/home': typeof AuthenticatedHomeRoute
@@ -210,6 +223,7 @@ export interface FileRoutesByFullPath {
   '/settings': typeof AuthenticatedSettingsRoute
   '/studio': typeof AuthenticatedStudioRouteWithChildren
   '/vision': typeof AuthenticatedVisionRoute
+  '/api/call': typeof ApiCallRoute
   '/api/chat': typeof ApiChatRoute
   '/api/edit-image': typeof ApiEditImageRoute
   '/api/generate-image': typeof ApiGenerateImageRoute
@@ -229,6 +243,7 @@ export interface FileRoutesByTo {
   '/auth': typeof AuthRoute
   '/reset-password': typeof ResetPasswordRoute
   '/ar': typeof AuthenticatedArRoute
+  '/call': typeof AuthenticatedCallRoute
   '/chat': typeof AuthenticatedChatRouteWithChildren
   '/edit': typeof AuthenticatedEditRoute
   '/home': typeof AuthenticatedHomeRoute
@@ -240,6 +255,7 @@ export interface FileRoutesByTo {
   '/screen': typeof AuthenticatedScreenRoute
   '/settings': typeof AuthenticatedSettingsRoute
   '/vision': typeof AuthenticatedVisionRoute
+  '/api/call': typeof ApiCallRoute
   '/api/chat': typeof ApiChatRoute
   '/api/edit-image': typeof ApiEditImageRoute
   '/api/generate-image': typeof ApiGenerateImageRoute
@@ -261,6 +277,7 @@ export interface FileRoutesById {
   '/auth': typeof AuthRoute
   '/reset-password': typeof ResetPasswordRoute
   '/_authenticated/ar': typeof AuthenticatedArRoute
+  '/_authenticated/call': typeof AuthenticatedCallRoute
   '/_authenticated/chat': typeof AuthenticatedChatRouteWithChildren
   '/_authenticated/edit': typeof AuthenticatedEditRoute
   '/_authenticated/home': typeof AuthenticatedHomeRoute
@@ -273,6 +290,7 @@ export interface FileRoutesById {
   '/_authenticated/settings': typeof AuthenticatedSettingsRoute
   '/_authenticated/studio': typeof AuthenticatedStudioRouteWithChildren
   '/_authenticated/vision': typeof AuthenticatedVisionRoute
+  '/api/call': typeof ApiCallRoute
   '/api/chat': typeof ApiChatRoute
   '/api/edit-image': typeof ApiEditImageRoute
   '/api/generate-image': typeof ApiGenerateImageRoute
@@ -294,6 +312,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/reset-password'
     | '/ar'
+    | '/call'
     | '/chat'
     | '/edit'
     | '/home'
@@ -306,6 +325,7 @@ export interface FileRouteTypes {
     | '/settings'
     | '/studio'
     | '/vision'
+    | '/api/call'
     | '/api/chat'
     | '/api/edit-image'
     | '/api/generate-image'
@@ -325,6 +345,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/reset-password'
     | '/ar'
+    | '/call'
     | '/chat'
     | '/edit'
     | '/home'
@@ -336,6 +357,7 @@ export interface FileRouteTypes {
     | '/screen'
     | '/settings'
     | '/vision'
+    | '/api/call'
     | '/api/chat'
     | '/api/edit-image'
     | '/api/generate-image'
@@ -356,6 +378,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/reset-password'
     | '/_authenticated/ar'
+    | '/_authenticated/call'
     | '/_authenticated/chat'
     | '/_authenticated/edit'
     | '/_authenticated/home'
@@ -368,6 +391,7 @@ export interface FileRouteTypes {
     | '/_authenticated/settings'
     | '/_authenticated/studio'
     | '/_authenticated/vision'
+    | '/api/call'
     | '/api/chat'
     | '/api/edit-image'
     | '/api/generate-image'
@@ -388,6 +412,7 @@ export interface RootRouteChildren {
   AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
   AuthRoute: typeof AuthRoute
   ResetPasswordRoute: typeof ResetPasswordRoute
+  ApiCallRoute: typeof ApiCallRoute
   ApiChatRoute: typeof ApiChatRoute
   ApiEditImageRoute: typeof ApiEditImageRoute
   ApiGenerateImageRoute: typeof ApiGenerateImageRoute
@@ -486,6 +511,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiChatRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/call': {
+      id: '/api/call'
+      path: '/api/call'
+      fullPath: '/api/call'
+      preLoaderRoute: typeof ApiCallRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/_authenticated/vision': {
       id: '/_authenticated/vision'
       path: '/vision'
@@ -570,6 +602,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedChatRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/call': {
+      id: '/_authenticated/call'
+      path: '/call'
+      fullPath: '/call'
+      preLoaderRoute: typeof AuthenticatedCallRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/ar': {
       id: '/_authenticated/ar'
       path: '/ar'
@@ -641,6 +680,7 @@ const AuthenticatedStudioRouteWithChildren =
 
 interface AuthenticatedRouteRouteChildren {
   AuthenticatedArRoute: typeof AuthenticatedArRoute
+  AuthenticatedCallRoute: typeof AuthenticatedCallRoute
   AuthenticatedChatRoute: typeof AuthenticatedChatRouteWithChildren
   AuthenticatedEditRoute: typeof AuthenticatedEditRoute
   AuthenticatedHomeRoute: typeof AuthenticatedHomeRoute
@@ -657,6 +697,7 @@ interface AuthenticatedRouteRouteChildren {
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedArRoute: AuthenticatedArRoute,
+  AuthenticatedCallRoute: AuthenticatedCallRoute,
   AuthenticatedChatRoute: AuthenticatedChatRouteWithChildren,
   AuthenticatedEditRoute: AuthenticatedEditRoute,
   AuthenticatedHomeRoute: AuthenticatedHomeRoute,
@@ -679,6 +720,7 @@ const rootRouteChildren: RootRouteChildren = {
   AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
   AuthRoute: AuthRoute,
   ResetPasswordRoute: ResetPasswordRoute,
+  ApiCallRoute: ApiCallRoute,
   ApiChatRoute: ApiChatRoute,
   ApiEditImageRoute: ApiEditImageRoute,
   ApiGenerateImageRoute: ApiGenerateImageRoute,
