@@ -190,6 +190,26 @@ export default function Home() {
         )}
       </div>
 
+      {/* Call ARIA */}
+      <motion.div whileTap={{ scale: 0.97 }} className="mt-4">
+        <Link
+          to="/call"
+          className="hud-corner relative flex items-center gap-3 overflow-hidden rounded-2xl border border-primary/60 bg-primary/15 px-4 py-3.5 transition hover:bg-primary/25"
+        >
+          <span className="grid h-10 w-10 place-items-center rounded-full border border-primary bg-primary/20 text-primary shadow-[0_0_22px_hsl(var(--mood)/0.5)]">
+            <Phone className="h-5 w-5" />
+          </span>
+          <span className="min-w-0">
+            <span className="block font-display text-sm uppercase tracking-[0.3em] text-primary hud-text-glow">
+              Call ARIA
+            </span>
+            <span className="block font-mono text-[10px] uppercase tracking-[0.2em] text-muted-foreground">
+              Hands-free voice conversation
+            </span>
+          </span>
+        </Link>
+      </motion.div>
+
       {/* Quick actions */}
       <section className="mt-6">
         <h2 className="mb-2 font-display text-[11px] uppercase tracking-[0.35em] text-primary/70">
