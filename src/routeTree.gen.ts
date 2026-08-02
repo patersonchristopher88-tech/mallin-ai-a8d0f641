@@ -34,6 +34,7 @@ import { Route as AuthenticatedLibraryRouteImport } from './routes/_authenticate
 import { Route as AuthenticatedHomeRouteImport } from './routes/_authenticated/home'
 import { Route as AuthenticatedEditRouteImport } from './routes/_authenticated/edit'
 import { Route as AuthenticatedChatRouteImport } from './routes/_authenticated/chat'
+import { Route as AuthenticatedCallRouteImport } from './routes/_authenticated/call'
 import { Route as AuthenticatedArRouteImport } from './routes/_authenticated/ar'
 import { Route as AuthenticatedStudioIndexRouteImport } from './routes/_authenticated/studio.index'
 import { Route as ApiTtsLovableRouteImport } from './routes/api/tts.lovable'
@@ -165,6 +166,11 @@ const AuthenticatedChatRoute = AuthenticatedChatRouteImport.update({
   path: '/chat',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedCallRoute = AuthenticatedCallRouteImport.update({
+  id: '/call',
+  path: '/call',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const AuthenticatedArRoute = AuthenticatedArRouteImport.update({
   id: '/ar',
   path: '/ar',
@@ -204,6 +210,7 @@ export interface FileRoutesByFullPath {
   '/auth': typeof AuthRoute
   '/reset-password': typeof ResetPasswordRoute
   '/ar': typeof AuthenticatedArRoute
+  '/call': typeof AuthenticatedCallRoute
   '/chat': typeof AuthenticatedChatRouteWithChildren
   '/edit': typeof AuthenticatedEditRoute
   '/home': typeof AuthenticatedHomeRoute
@@ -236,6 +243,7 @@ export interface FileRoutesByTo {
   '/auth': typeof AuthRoute
   '/reset-password': typeof ResetPasswordRoute
   '/ar': typeof AuthenticatedArRoute
+  '/call': typeof AuthenticatedCallRoute
   '/chat': typeof AuthenticatedChatRouteWithChildren
   '/edit': typeof AuthenticatedEditRoute
   '/home': typeof AuthenticatedHomeRoute
@@ -269,6 +277,7 @@ export interface FileRoutesById {
   '/auth': typeof AuthRoute
   '/reset-password': typeof ResetPasswordRoute
   '/_authenticated/ar': typeof AuthenticatedArRoute
+  '/_authenticated/call': typeof AuthenticatedCallRoute
   '/_authenticated/chat': typeof AuthenticatedChatRouteWithChildren
   '/_authenticated/edit': typeof AuthenticatedEditRoute
   '/_authenticated/home': typeof AuthenticatedHomeRoute
@@ -303,6 +312,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/reset-password'
     | '/ar'
+    | '/call'
     | '/chat'
     | '/edit'
     | '/home'
@@ -335,6 +345,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/reset-password'
     | '/ar'
+    | '/call'
     | '/chat'
     | '/edit'
     | '/home'
@@ -367,6 +378,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/reset-password'
     | '/_authenticated/ar'
+    | '/_authenticated/call'
     | '/_authenticated/chat'
     | '/_authenticated/edit'
     | '/_authenticated/home'
@@ -590,6 +602,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedChatRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/call': {
+      id: '/_authenticated/call'
+      path: '/call'
+      fullPath: '/call'
+      preLoaderRoute: typeof AuthenticatedCallRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/ar': {
       id: '/_authenticated/ar'
       path: '/ar'
@@ -661,6 +680,7 @@ const AuthenticatedStudioRouteWithChildren =
 
 interface AuthenticatedRouteRouteChildren {
   AuthenticatedArRoute: typeof AuthenticatedArRoute
+  AuthenticatedCallRoute: typeof AuthenticatedCallRoute
   AuthenticatedChatRoute: typeof AuthenticatedChatRouteWithChildren
   AuthenticatedEditRoute: typeof AuthenticatedEditRoute
   AuthenticatedHomeRoute: typeof AuthenticatedHomeRoute
@@ -677,6 +697,7 @@ interface AuthenticatedRouteRouteChildren {
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedArRoute: AuthenticatedArRoute,
+  AuthenticatedCallRoute: AuthenticatedCallRoute,
   AuthenticatedChatRoute: AuthenticatedChatRouteWithChildren,
   AuthenticatedEditRoute: AuthenticatedEditRoute,
   AuthenticatedHomeRoute: AuthenticatedHomeRoute,
@@ -714,13 +735,3 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}
