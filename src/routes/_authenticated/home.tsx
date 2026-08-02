@@ -14,6 +14,7 @@ import {
   Wand2,
   Clock,
   ArrowRight,
+  Phone,
 } from "lucide-react";
 import { getProfile } from "@/lib/aria/profile.functions";
 import { listThreads } from "@/lib/aria/threads.functions";
