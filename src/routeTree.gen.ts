@@ -17,6 +17,7 @@ import { Route as ApiVisionFactcheckRouteImport } from './routes/api/vision-fact
 import { Route as ApiVisionRouteImport } from './routes/api/vision'
 import { Route as ApiTextToolRouteImport } from './routes/api/text-tool'
 import { Route as ApiSttRouteImport } from './routes/api/stt'
+import { Route as ApiSpatialRouteImport } from './routes/api/spatial'
 import { Route as ApiGenerateVideoRouteImport } from './routes/api/generate-video'
 import { Route as ApiGenerateImageRouteImport } from './routes/api/generate-image'
 import { Route as ApiEditImageRouteImport } from './routes/api/edit-image'
@@ -79,6 +80,11 @@ const ApiTextToolRoute = ApiTextToolRouteImport.update({
 const ApiSttRoute = ApiSttRouteImport.update({
   id: '/api/stt',
   path: '/api/stt',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiSpatialRoute = ApiSpatialRouteImport.update({
+  id: '/api/spatial',
+  path: '/api/spatial',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiGenerateVideoRoute = ApiGenerateVideoRouteImport.update({
@@ -228,6 +234,7 @@ export interface FileRoutesByFullPath {
   '/api/edit-image': typeof ApiEditImageRoute
   '/api/generate-image': typeof ApiGenerateImageRoute
   '/api/generate-video': typeof ApiGenerateVideoRoute
+  '/api/spatial': typeof ApiSpatialRoute
   '/api/stt': typeof ApiSttRoute
   '/api/text-tool': typeof ApiTextToolRoute
   '/api/vision': typeof ApiVisionRoute
@@ -260,6 +267,7 @@ export interface FileRoutesByTo {
   '/api/edit-image': typeof ApiEditImageRoute
   '/api/generate-image': typeof ApiGenerateImageRoute
   '/api/generate-video': typeof ApiGenerateVideoRoute
+  '/api/spatial': typeof ApiSpatialRoute
   '/api/stt': typeof ApiSttRoute
   '/api/text-tool': typeof ApiTextToolRoute
   '/api/vision': typeof ApiVisionRoute
@@ -295,6 +303,7 @@ export interface FileRoutesById {
   '/api/edit-image': typeof ApiEditImageRoute
   '/api/generate-image': typeof ApiGenerateImageRoute
   '/api/generate-video': typeof ApiGenerateVideoRoute
+  '/api/spatial': typeof ApiSpatialRoute
   '/api/stt': typeof ApiSttRoute
   '/api/text-tool': typeof ApiTextToolRoute
   '/api/vision': typeof ApiVisionRoute
@@ -330,6 +339,7 @@ export interface FileRouteTypes {
     | '/api/edit-image'
     | '/api/generate-image'
     | '/api/generate-video'
+    | '/api/spatial'
     | '/api/stt'
     | '/api/text-tool'
     | '/api/vision'
@@ -362,6 +372,7 @@ export interface FileRouteTypes {
     | '/api/edit-image'
     | '/api/generate-image'
     | '/api/generate-video'
+    | '/api/spatial'
     | '/api/stt'
     | '/api/text-tool'
     | '/api/vision'
@@ -396,6 +407,7 @@ export interface FileRouteTypes {
     | '/api/edit-image'
     | '/api/generate-image'
     | '/api/generate-video'
+    | '/api/spatial'
     | '/api/stt'
     | '/api/text-tool'
     | '/api/vision'
@@ -417,6 +429,7 @@ export interface RootRouteChildren {
   ApiEditImageRoute: typeof ApiEditImageRoute
   ApiGenerateImageRoute: typeof ApiGenerateImageRoute
   ApiGenerateVideoRoute: typeof ApiGenerateVideoRoute
+  ApiSpatialRoute: typeof ApiSpatialRoute
   ApiSttRoute: typeof ApiSttRoute
   ApiTextToolRoute: typeof ApiTextToolRoute
   ApiVisionRoute: typeof ApiVisionRoute
@@ -481,6 +494,13 @@ declare module '@tanstack/react-router' {
       path: '/api/stt'
       fullPath: '/api/stt'
       preLoaderRoute: typeof ApiSttRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/spatial': {
+      id: '/api/spatial'
+      path: '/api/spatial'
+      fullPath: '/api/spatial'
+      preLoaderRoute: typeof ApiSpatialRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/generate-video': {
@@ -725,6 +745,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiEditImageRoute: ApiEditImageRoute,
   ApiGenerateImageRoute: ApiGenerateImageRoute,
   ApiGenerateVideoRoute: ApiGenerateVideoRoute,
+  ApiSpatialRoute: ApiSpatialRoute,
   ApiSttRoute: ApiSttRoute,
   ApiTextToolRoute: ApiTextToolRoute,
   ApiVisionRoute: ApiVisionRoute,
