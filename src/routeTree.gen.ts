@@ -25,6 +25,7 @@ import { Route as ApiChatRouteImport } from './routes/api/chat'
 import { Route as ApiCallRouteImport } from './routes/api/call'
 import { Route as AuthenticatedVisionRouteImport } from './routes/_authenticated/vision'
 import { Route as AuthenticatedStudioRouteImport } from './routes/_authenticated/studio'
+import { Route as AuthenticatedSpatialRouteImport } from './routes/_authenticated/spatial'
 import { Route as AuthenticatedSettingsRouteImport } from './routes/_authenticated/settings'
 import { Route as AuthenticatedScreenRouteImport } from './routes/_authenticated/screen'
 import { Route as AuthenticatedRemindersRouteImport } from './routes/_authenticated/reminders'
@@ -120,6 +121,11 @@ const AuthenticatedVisionRoute = AuthenticatedVisionRouteImport.update({
 const AuthenticatedStudioRoute = AuthenticatedStudioRouteImport.update({
   id: '/studio',
   path: '/studio',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedSpatialRoute = AuthenticatedSpatialRouteImport.update({
+  id: '/spatial',
+  path: '/spatial',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 const AuthenticatedSettingsRoute = AuthenticatedSettingsRouteImport.update({
@@ -227,6 +233,7 @@ export interface FileRoutesByFullPath {
   '/reminders': typeof AuthenticatedRemindersRoute
   '/screen': typeof AuthenticatedScreenRoute
   '/settings': typeof AuthenticatedSettingsRoute
+  '/spatial': typeof AuthenticatedSpatialRoute
   '/studio': typeof AuthenticatedStudioRouteWithChildren
   '/vision': typeof AuthenticatedVisionRoute
   '/api/call': typeof ApiCallRoute
@@ -261,6 +268,7 @@ export interface FileRoutesByTo {
   '/reminders': typeof AuthenticatedRemindersRoute
   '/screen': typeof AuthenticatedScreenRoute
   '/settings': typeof AuthenticatedSettingsRoute
+  '/spatial': typeof AuthenticatedSpatialRoute
   '/vision': typeof AuthenticatedVisionRoute
   '/api/call': typeof ApiCallRoute
   '/api/chat': typeof ApiChatRoute
@@ -296,6 +304,7 @@ export interface FileRoutesById {
   '/_authenticated/reminders': typeof AuthenticatedRemindersRoute
   '/_authenticated/screen': typeof AuthenticatedScreenRoute
   '/_authenticated/settings': typeof AuthenticatedSettingsRoute
+  '/_authenticated/spatial': typeof AuthenticatedSpatialRoute
   '/_authenticated/studio': typeof AuthenticatedStudioRouteWithChildren
   '/_authenticated/vision': typeof AuthenticatedVisionRoute
   '/api/call': typeof ApiCallRoute
@@ -332,6 +341,7 @@ export interface FileRouteTypes {
     | '/reminders'
     | '/screen'
     | '/settings'
+    | '/spatial'
     | '/studio'
     | '/vision'
     | '/api/call'
@@ -366,6 +376,7 @@ export interface FileRouteTypes {
     | '/reminders'
     | '/screen'
     | '/settings'
+    | '/spatial'
     | '/vision'
     | '/api/call'
     | '/api/chat'
@@ -400,6 +411,7 @@ export interface FileRouteTypes {
     | '/_authenticated/reminders'
     | '/_authenticated/screen'
     | '/_authenticated/settings'
+    | '/_authenticated/spatial'
     | '/_authenticated/studio'
     | '/_authenticated/vision'
     | '/api/call'
@@ -550,6 +562,13 @@ declare module '@tanstack/react-router' {
       path: '/studio'
       fullPath: '/studio'
       preLoaderRoute: typeof AuthenticatedStudioRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/spatial': {
+      id: '/_authenticated/spatial'
+      path: '/spatial'
+      fullPath: '/spatial'
+      preLoaderRoute: typeof AuthenticatedSpatialRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/settings': {
@@ -711,6 +730,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedRemindersRoute: typeof AuthenticatedRemindersRoute
   AuthenticatedScreenRoute: typeof AuthenticatedScreenRoute
   AuthenticatedSettingsRoute: typeof AuthenticatedSettingsRoute
+  AuthenticatedSpatialRoute: typeof AuthenticatedSpatialRoute
   AuthenticatedStudioRoute: typeof AuthenticatedStudioRouteWithChildren
   AuthenticatedVisionRoute: typeof AuthenticatedVisionRoute
 }
@@ -728,6 +748,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedRemindersRoute: AuthenticatedRemindersRoute,
   AuthenticatedScreenRoute: AuthenticatedScreenRoute,
   AuthenticatedSettingsRoute: AuthenticatedSettingsRoute,
+  AuthenticatedSpatialRoute: AuthenticatedSpatialRoute,
   AuthenticatedStudioRoute: AuthenticatedStudioRouteWithChildren,
   AuthenticatedVisionRoute: AuthenticatedVisionRoute,
 }
