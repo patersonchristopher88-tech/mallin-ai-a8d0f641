@@ -22,6 +22,7 @@ const TABS = [
 
 const FAB_ACTIONS = [
   { to: "/studio", label: "Studio", Icon: Sparkles },
+  { to: "/spatial", label: "Spatial", Icon: Sparkles },
   { to: "/vision", label: "Vision", Icon: Camera },
   { to: "/edit", label: "Edit image", Icon: Wand2 },
   { to: "/chat", label: "New chat", Icon: MessageSquare },

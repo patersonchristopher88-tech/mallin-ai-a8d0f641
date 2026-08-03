@@ -153,11 +153,16 @@ function WebXRMode({ supported }: { supported: boolean | null }) {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const cleanupRef = useRef<(() => void) | null>(null);
 
+  interface XRSessionLike {
+    end: () => Promise<void>;
+    addEventListener: (e: string, cb: () => void) => void;
+  }
+
   useEffect(() => () => cleanupRef.current?.(), []);
 
   async function launch() {
     const xr = (navigator as Navigator & {
-      xr?: { requestSession?: (mode: string, opts?: unknown) => Promise<XRSession> };
+      xr?: { requestSession?: (mode: string, opts?: unknown) => Promise<XRSessionLike> };
     }).xr;
     if (!xr?.requestSession) {
       toast.error("WebXR isn't available on this device or browser.");
@@ -202,7 +207,7 @@ function WebXRMode({ supported }: { supported: boolean | null }) {
         optionalFeatures: ["dom-overlay", "hit-test"],
       });
       // three.js owns the base layer + reference space from here.
-      await renderer.xr.setSession(session);
+      await renderer.xr.setSession(session as unknown as Parameters<typeof renderer.xr.setSession>[0]);
       setSessionActive(true);
 
       const clock = new THREE.Clock();
@@ -234,7 +239,7 @@ function WebXRMode({ supported }: { supported: boolean | null }) {
 
   return (
     <div className="relative flex flex-1 flex-col items-center justify-center gap-4 bg-black/60 p-6">
-      <canvas ref={canvasRef} className="hidden" />
+      <canvas ref={canvasRef} className="pointer-events-none fixed inset-0 h-full w-full opacity-0" />
       <div className="hud-corner hud-glass max-w-sm rounded-2xl border border-primary/30 p-6 text-center">
         <Glasses className="mx-auto mb-3 h-8 w-8 text-primary" />
         <h2 className="font-display text-lg uppercase tracking-widest text-primary hud-text-glow">
