@@ -151,20 +151,21 @@ function PhoneOverlay() {
 function WebXRMode({ supported }: { supported: boolean | null }) {
   const [sessionActive, setSessionActive] = useState(false);
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
+  const cleanupRef = useRef<(() => void) | null>(null);
+
+  interface XRSessionLike {
+    end: () => Promise<void>;
+    addEventListener: (e: string, cb: () => void) => void;
+  }
+
+  useEffect(() => () => cleanupRef.current?.(), []);
 
   async function launch() {
-    interface XRSessionLike {
-      end: () => Promise<void>;
-      addEventListener: (e: string, cb: () => void) => void;
-      requestReferenceSpace: (t: string) => Promise<unknown>;
-      requestAnimationFrame: (cb: (t: number, frame: unknown) => void) => number;
-      updateRenderState: (state: { baseLayer?: unknown }) => void;
-    }
     const xr = (navigator as Navigator & {
       xr?: { requestSession?: (mode: string, opts?: unknown) => Promise<XRSessionLike> };
     }).xr;
     if (!xr?.requestSession) {
-      toast.error("WebXR not available");
+      toast.error("WebXR isn't available on this device or browser.");
       return;
     }
     try {
@@ -172,63 +173,73 @@ function WebXRMode({ supported }: { supported: boolean | null }) {
       const canvas = canvasRef.current!;
       const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true });
       renderer.setPixelRatio(window.devicePixelRatio);
-      const gl = renderer.getContext();
-      await (gl as WebGLRenderingContext & { makeXRCompatible?: () => Promise<void> }).makeXRCompatible?.();
-
-      const session = (await xr.requestSession("immersive-ar", {
-        requiredFeatures: ["local"],
-      })) as XRSessionLike & { renderState?: unknown };
-      setSessionActive(true);
-      session.addEventListener("end", () => setSessionActive(false));
+      renderer.setSize(window.innerWidth, window.innerHeight, false);
+      renderer.xr.enabled = true;
+      renderer.xr.setReferenceSpaceType("local");
 
       const scene = new THREE.Scene();
-      const camera = new THREE.PerspectiveCamera();
-      const geometry = new THREE.IcosahedronGeometry(0.12, 4);
-      const material = new THREE.MeshBasicMaterial({
-        color: 0x22e1ff,
-        wireframe: true,
-        transparent: true,
-        opacity: 0.9,
-      });
-      const orb = new THREE.Mesh(geometry, material);
-      orb.position.set(0, 0, -0.8);
-      scene.add(orb);
+      const camera = new THREE.PerspectiveCamera(70, 1, 0.01, 40);
+      scene.add(new THREE.HemisphereLight(0x88ddff, 0x112233, 1.4));
 
-      // arc-reactor rings
+      const group = new THREE.Group();
+      group.position.set(0, 0, -0.9);
+      scene.add(group);
+
+      const orb = new THREE.Mesh(
+        new THREE.IcosahedronGeometry(0.12, 4),
+        new THREE.MeshBasicMaterial({ color: 0x22e1ff, wireframe: true, transparent: true, opacity: 0.9 }),
+      );
+      group.add(orb);
+
+      const rings: ThreeNS.Mesh[] = [];
       for (let i = 0; i < 3; i++) {
         const ring = new THREE.Mesh(
           new THREE.TorusGeometry(0.16 + i * 0.03, 0.003, 8, 64),
           new THREE.MeshBasicMaterial({ color: 0xffb547, transparent: true, opacity: 0.7 }),
         );
-        ring.position.set(0, 0, -0.8);
         ring.rotation.x = (i * Math.PI) / 3;
-        scene.add(ring);
+        rings.push(ring);
+        group.add(ring);
       }
 
-      const XRWebGLLayer = (
-        window as unknown as { XRWebGLLayer: new (session: unknown, gl: WebGLRenderingContext) => unknown }
-      ).XRWebGLLayer;
-      session.updateRenderState({ baseLayer: new XRWebGLLayer(session, gl as WebGLRenderingContext) });
-      await session.requestReferenceSpace("local");
+      const session = await xr.requestSession("immersive-ar", {
+        requiredFeatures: ["local"],
+        optionalFeatures: ["dom-overlay", "hit-test"],
+      });
+      // three.js owns the base layer + reference space from here.
+      await renderer.xr.setSession(session as unknown as Parameters<typeof renderer.xr.setSession>[0]);
+      setSessionActive(true);
 
-      const onFrame = (_t: number, _frame: unknown) => {
-        orb.rotation.y += 0.01;
-        orb.rotation.x += 0.005;
-        scene.children.forEach((c: ThreeNS.Object3D, i: number) => {
-          if (i > 0) c.rotation.z += 0.008 * i;
-        });
+      const clock = new THREE.Clock();
+      renderer.setAnimationLoop(() => {
+        const t = clock.getElapsedTime();
+        orb.rotation.y = t * 0.6;
+        orb.rotation.x = t * 0.3;
+        rings.forEach((r, i) => (r.rotation.z = t * (0.4 + i * 0.25)));
         renderer.render(scene, camera);
-        session.requestAnimationFrame(onFrame);
+      });
+
+      const cleanup = () => {
+        renderer.setAnimationLoop(null);
+        renderer.dispose();
+        setSessionActive(false);
+        cleanupRef.current = null;
       };
-      session.requestAnimationFrame(onFrame);
+      cleanupRef.current = () => {
+        void session.end().catch(() => {});
+        cleanup();
+      };
+      session.addEventListener("end", cleanup);
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : "WebXR failed");
+      setSessionActive(false);
+      toast.error(err instanceof Error ? err.message : "Couldn't start the AR session.");
     }
   }
 
+
   return (
     <div className="relative flex flex-1 flex-col items-center justify-center gap-4 bg-black/60 p-6">
-      <canvas ref={canvasRef} className="hidden" />
+      <canvas ref={canvasRef} className="pointer-events-none fixed inset-0 h-full w-full opacity-0" />
       <div className="hud-corner hud-glass max-w-sm rounded-2xl border border-primary/30 p-6 text-center">
         <Glasses className="mx-auto mb-3 h-8 w-8 text-primary" />
         <h2 className="font-display text-lg uppercase tracking-widest text-primary hud-text-glow">

@@ -17,6 +17,7 @@ import { Route as ApiVisionFactcheckRouteImport } from './routes/api/vision-fact
 import { Route as ApiVisionRouteImport } from './routes/api/vision'
 import { Route as ApiTextToolRouteImport } from './routes/api/text-tool'
 import { Route as ApiSttRouteImport } from './routes/api/stt'
+import { Route as ApiSpatialRouteImport } from './routes/api/spatial'
 import { Route as ApiGenerateVideoRouteImport } from './routes/api/generate-video'
 import { Route as ApiGenerateImageRouteImport } from './routes/api/generate-image'
 import { Route as ApiEditImageRouteImport } from './routes/api/edit-image'
@@ -24,6 +25,7 @@ import { Route as ApiChatRouteImport } from './routes/api/chat'
 import { Route as ApiCallRouteImport } from './routes/api/call'
 import { Route as AuthenticatedVisionRouteImport } from './routes/_authenticated/vision'
 import { Route as AuthenticatedStudioRouteImport } from './routes/_authenticated/studio'
+import { Route as AuthenticatedSpatialRouteImport } from './routes/_authenticated/spatial'
 import { Route as AuthenticatedSettingsRouteImport } from './routes/_authenticated/settings'
 import { Route as AuthenticatedScreenRouteImport } from './routes/_authenticated/screen'
 import { Route as AuthenticatedRemindersRouteImport } from './routes/_authenticated/reminders'
@@ -81,6 +83,11 @@ const ApiSttRoute = ApiSttRouteImport.update({
   path: '/api/stt',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiSpatialRoute = ApiSpatialRouteImport.update({
+  id: '/api/spatial',
+  path: '/api/spatial',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiGenerateVideoRoute = ApiGenerateVideoRouteImport.update({
   id: '/api/generate-video',
   path: '/api/generate-video',
@@ -114,6 +121,11 @@ const AuthenticatedVisionRoute = AuthenticatedVisionRouteImport.update({
 const AuthenticatedStudioRoute = AuthenticatedStudioRouteImport.update({
   id: '/studio',
   path: '/studio',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedSpatialRoute = AuthenticatedSpatialRouteImport.update({
+  id: '/spatial',
+  path: '/spatial',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 const AuthenticatedSettingsRoute = AuthenticatedSettingsRouteImport.update({
@@ -221,6 +233,7 @@ export interface FileRoutesByFullPath {
   '/reminders': typeof AuthenticatedRemindersRoute
   '/screen': typeof AuthenticatedScreenRoute
   '/settings': typeof AuthenticatedSettingsRoute
+  '/spatial': typeof AuthenticatedSpatialRoute
   '/studio': typeof AuthenticatedStudioRouteWithChildren
   '/vision': typeof AuthenticatedVisionRoute
   '/api/call': typeof ApiCallRoute
@@ -228,6 +241,7 @@ export interface FileRoutesByFullPath {
   '/api/edit-image': typeof ApiEditImageRoute
   '/api/generate-image': typeof ApiGenerateImageRoute
   '/api/generate-video': typeof ApiGenerateVideoRoute
+  '/api/spatial': typeof ApiSpatialRoute
   '/api/stt': typeof ApiSttRoute
   '/api/text-tool': typeof ApiTextToolRoute
   '/api/vision': typeof ApiVisionRoute
@@ -254,12 +268,14 @@ export interface FileRoutesByTo {
   '/reminders': typeof AuthenticatedRemindersRoute
   '/screen': typeof AuthenticatedScreenRoute
   '/settings': typeof AuthenticatedSettingsRoute
+  '/spatial': typeof AuthenticatedSpatialRoute
   '/vision': typeof AuthenticatedVisionRoute
   '/api/call': typeof ApiCallRoute
   '/api/chat': typeof ApiChatRoute
   '/api/edit-image': typeof ApiEditImageRoute
   '/api/generate-image': typeof ApiGenerateImageRoute
   '/api/generate-video': typeof ApiGenerateVideoRoute
+  '/api/spatial': typeof ApiSpatialRoute
   '/api/stt': typeof ApiSttRoute
   '/api/text-tool': typeof ApiTextToolRoute
   '/api/vision': typeof ApiVisionRoute
@@ -288,6 +304,7 @@ export interface FileRoutesById {
   '/_authenticated/reminders': typeof AuthenticatedRemindersRoute
   '/_authenticated/screen': typeof AuthenticatedScreenRoute
   '/_authenticated/settings': typeof AuthenticatedSettingsRoute
+  '/_authenticated/spatial': typeof AuthenticatedSpatialRoute
   '/_authenticated/studio': typeof AuthenticatedStudioRouteWithChildren
   '/_authenticated/vision': typeof AuthenticatedVisionRoute
   '/api/call': typeof ApiCallRoute
@@ -295,6 +312,7 @@ export interface FileRoutesById {
   '/api/edit-image': typeof ApiEditImageRoute
   '/api/generate-image': typeof ApiGenerateImageRoute
   '/api/generate-video': typeof ApiGenerateVideoRoute
+  '/api/spatial': typeof ApiSpatialRoute
   '/api/stt': typeof ApiSttRoute
   '/api/text-tool': typeof ApiTextToolRoute
   '/api/vision': typeof ApiVisionRoute
@@ -323,6 +341,7 @@ export interface FileRouteTypes {
     | '/reminders'
     | '/screen'
     | '/settings'
+    | '/spatial'
     | '/studio'
     | '/vision'
     | '/api/call'
@@ -330,6 +349,7 @@ export interface FileRouteTypes {
     | '/api/edit-image'
     | '/api/generate-image'
     | '/api/generate-video'
+    | '/api/spatial'
     | '/api/stt'
     | '/api/text-tool'
     | '/api/vision'
@@ -356,12 +376,14 @@ export interface FileRouteTypes {
     | '/reminders'
     | '/screen'
     | '/settings'
+    | '/spatial'
     | '/vision'
     | '/api/call'
     | '/api/chat'
     | '/api/edit-image'
     | '/api/generate-image'
     | '/api/generate-video'
+    | '/api/spatial'
     | '/api/stt'
     | '/api/text-tool'
     | '/api/vision'
@@ -389,6 +411,7 @@ export interface FileRouteTypes {
     | '/_authenticated/reminders'
     | '/_authenticated/screen'
     | '/_authenticated/settings'
+    | '/_authenticated/spatial'
     | '/_authenticated/studio'
     | '/_authenticated/vision'
     | '/api/call'
@@ -396,6 +419,7 @@ export interface FileRouteTypes {
     | '/api/edit-image'
     | '/api/generate-image'
     | '/api/generate-video'
+    | '/api/spatial'
     | '/api/stt'
     | '/api/text-tool'
     | '/api/vision'
@@ -417,6 +441,7 @@ export interface RootRouteChildren {
   ApiEditImageRoute: typeof ApiEditImageRoute
   ApiGenerateImageRoute: typeof ApiGenerateImageRoute
   ApiGenerateVideoRoute: typeof ApiGenerateVideoRoute
+  ApiSpatialRoute: typeof ApiSpatialRoute
   ApiSttRoute: typeof ApiSttRoute
   ApiTextToolRoute: typeof ApiTextToolRoute
   ApiVisionRoute: typeof ApiVisionRoute
@@ -483,6 +508,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiSttRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/spatial': {
+      id: '/api/spatial'
+      path: '/api/spatial'
+      fullPath: '/api/spatial'
+      preLoaderRoute: typeof ApiSpatialRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/generate-video': {
       id: '/api/generate-video'
       path: '/api/generate-video'
@@ -530,6 +562,13 @@ declare module '@tanstack/react-router' {
       path: '/studio'
       fullPath: '/studio'
       preLoaderRoute: typeof AuthenticatedStudioRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/spatial': {
+      id: '/_authenticated/spatial'
+      path: '/spatial'
+      fullPath: '/spatial'
+      preLoaderRoute: typeof AuthenticatedSpatialRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/settings': {
@@ -691,6 +730,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedRemindersRoute: typeof AuthenticatedRemindersRoute
   AuthenticatedScreenRoute: typeof AuthenticatedScreenRoute
   AuthenticatedSettingsRoute: typeof AuthenticatedSettingsRoute
+  AuthenticatedSpatialRoute: typeof AuthenticatedSpatialRoute
   AuthenticatedStudioRoute: typeof AuthenticatedStudioRouteWithChildren
   AuthenticatedVisionRoute: typeof AuthenticatedVisionRoute
 }
@@ -708,6 +748,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedRemindersRoute: AuthenticatedRemindersRoute,
   AuthenticatedScreenRoute: AuthenticatedScreenRoute,
   AuthenticatedSettingsRoute: AuthenticatedSettingsRoute,
+  AuthenticatedSpatialRoute: AuthenticatedSpatialRoute,
   AuthenticatedStudioRoute: AuthenticatedStudioRouteWithChildren,
   AuthenticatedVisionRoute: AuthenticatedVisionRoute,
 }
@@ -725,6 +766,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiEditImageRoute: ApiEditImageRoute,
   ApiGenerateImageRoute: ApiGenerateImageRoute,
   ApiGenerateVideoRoute: ApiGenerateVideoRoute,
+  ApiSpatialRoute: ApiSpatialRoute,
   ApiSttRoute: ApiSttRoute,
   ApiTextToolRoute: ApiTextToolRoute,
   ApiVisionRoute: ApiVisionRoute,
