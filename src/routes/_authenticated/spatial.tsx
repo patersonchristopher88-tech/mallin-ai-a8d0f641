@@ -128,6 +128,8 @@ function SpatialPage() {
   const [explodeSignal, setExplodeSignal] = useState(0);
   const [collapseSignal, setCollapseSignal] = useState(0);
   const [gestureOn, setGestureOn] = useState(false);
+  const [cameraOn, setCameraOn] = useState(false);
+
 
   const recRef = useRef<{ stop: () => void; abort: () => void } | null>(null);
   const gestures = useHandGestures();
