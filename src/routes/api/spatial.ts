@@ -106,7 +106,37 @@ export const Route = createFileRoute("/api/spatial")({
               );
               return Response.json({ text });
             }
+            case "model-spec": {
+              const q = (body.query ?? "").slice(0, 160);
+              const raw = await ai(
+                key,
+                [
+                  "You design simple 3D holographic models out of primitive shapes for an AR workspace.",
+                  "Reply with ONLY minified JSON, no markdown fences, matching:",
+                  '{"title":string,"subtitle":string,"spin":number,"parts":[{"name":string,"desc":string,"shape":"sphere"|"box"|"cylinder"|"cone"|"torus"|"capsule","size":[number,number,number],"pos":[number,number,number],"color":"#rrggbb","wireframe":boolean}]}',
+                  "Rules: 4-10 parts. Coordinates and sizes between -2.5 and 2.5 in arbitrary units, assembled so the parts form a recognisable shape of the subject. Y is up. desc is one factual sentence about what that part does. subtitle is 3-5 words.",
+                ].join("\n"),
+                `Subject: ${q}`,
+              );
+              const cleaned = raw
+                .replace(/```json/gi, "")
+                .replace(/```/g, "")
+                .trim();
+              const start = cleaned.indexOf("{");
+              const end = cleaned.lastIndexOf("}");
+              if (start < 0 || end <= start) return Response.json({ error: "bad spec" }, { status: 502 });
+              try {
+                const spec = JSON.parse(cleaned.slice(start, end + 1));
+                if (!Array.isArray(spec?.parts) || spec.parts.length === 0) {
+                  return Response.json({ error: "empty spec" }, { status: 502 });
+                }
+                return Response.json({ spec });
+              } catch {
+                return Response.json({ error: "unparsable spec" }, { status: 502 });
+              }
+            }
             case "explain": {
+
               const text = await ai(
                 key,
                 "You are ARIA, an expert spatial tutor. Explain the requested component clearly in 2-4 short sentences. Confident, specific, no filler.",
