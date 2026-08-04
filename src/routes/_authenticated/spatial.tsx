@@ -367,11 +367,27 @@ function SpatialPage() {
     if (gestures.active) {
       gestures.stop();
       setGestureOn(false);
+      setCameraOn(false);
       return;
     }
     setGestureOn(true);
     await gestures.start();
   };
+
+  /** Camera passthrough: shares the single hand-tracking stream. */
+  const toggleCamera = async () => {
+    if (cameraOn) {
+      setCameraOn(false);
+      return;
+    }
+    setCameraOn(true);
+    if (!gestures.active) {
+      setGestureOn(true);
+      await gestures.start();
+    }
+    setAria("Passthrough online. Panels are anchored over your room — use your hands to move them.");
+  };
+
 
   useEffect(() => {
     if (gestures.lastError) toast.error(gestures.lastError);
