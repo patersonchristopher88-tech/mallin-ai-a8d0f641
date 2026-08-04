@@ -605,7 +605,7 @@ function SpatialPage() {
             }}
           />
         ))}
-      <video ref={gestures.videoRef} className="pointer-events-none absolute h-px w-px opacity-0" muted playsInline />
+
 
       {/* ARIA voice line + dock */}
       <div className="absolute inset-x-0 bottom-0 z-30 space-y-2 bg-gradient-to-t from-background via-background/90 to-transparent px-3 pb-3 pt-6">
