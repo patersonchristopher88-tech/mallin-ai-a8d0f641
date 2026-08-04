@@ -6,6 +6,8 @@ import {
   Boxes,
   Brain,
   Calendar,
+  Camera,
+
   Cloud,
   FileText,
   Globe,
