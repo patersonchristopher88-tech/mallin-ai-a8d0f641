@@ -466,26 +466,51 @@ function SpatialPage() {
 
   return (
     <main className="relative flex-1 overflow-hidden">
+      {/* camera passthrough */}
+      <video
+        ref={gestures.videoRef}
+        muted
+        playsInline
+        className={cn(
+          "absolute inset-0 h-full w-full object-cover transition-opacity duration-700",
+          cameraOn && gestures.active ? "opacity-70" : "pointer-events-none h-px w-px opacity-0",
+        )}
+        style={{ transform: "scaleX(-1)" }}
+      />
+      {cameraOn && gestures.active && (
+        <div
+          className="pointer-events-none absolute inset-0"
+          style={{
+            background:
+              "radial-gradient(120% 90% at 50% 50%, transparent 30%, hsl(var(--background) / 0.85) 100%), linear-gradient(hsl(var(--mood) / 0.08), hsl(var(--mood) / 0.04))",
+          }}
+        />
+      )}
+
       {/* room */}
       <div className="pointer-events-none absolute inset-0">
         <div
           className="absolute inset-0"
           style={{
-            background:
-              "radial-gradient(120% 90% at 50% 0%, hsl(var(--mood) / 0.14), transparent 60%), radial-gradient(100% 80% at 50% 110%, hsl(var(--mood) / 0.1), transparent 60%)",
+            background: cameraOn
+              ? "none"
+              : "radial-gradient(120% 90% at 50% 0%, hsl(var(--mood) / 0.14), transparent 60%), radial-gradient(100% 80% at 50% 110%, hsl(var(--mood) / 0.1), transparent 60%)",
           }}
         />
-        <div
-          className="absolute inset-x-0 bottom-0 h-2/5 opacity-30"
-          style={{
-            backgroundImage:
-              "linear-gradient(hsl(var(--mood) / 0.35) 1px, transparent 1px), linear-gradient(90deg, hsl(var(--mood) / 0.35) 1px, transparent 1px)",
-            backgroundSize: "48px 48px",
-            transform: "perspective(420px) rotateX(62deg)",
-            transformOrigin: "bottom",
-            maskImage: "linear-gradient(to top, black, transparent)",
-          }}
-        />
+        {!cameraOn && (
+          <div
+            className="absolute inset-x-0 bottom-0 h-2/5 opacity-30"
+            style={{
+              backgroundImage:
+                "linear-gradient(hsl(var(--mood) / 0.35) 1px, transparent 1px), linear-gradient(90deg, hsl(var(--mood) / 0.35) 1px, transparent 1px)",
+              backgroundSize: "48px 48px",
+              transform: "perspective(420px) rotateX(62deg)",
+              transformOrigin: "bottom",
+              maskImage: "linear-gradient(to top, black, transparent)",
+            }}
+          />
+        )}
+
       </div>
 
       <AnimatePresence>
