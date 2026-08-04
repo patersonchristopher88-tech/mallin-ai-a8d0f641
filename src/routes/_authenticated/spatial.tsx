@@ -510,9 +510,20 @@ function SpatialPage() {
             Spatial Workspace
           </p>
           <p className="truncate font-mono text-[10px] text-muted-foreground">
-            {panels.length} panel{panels.length === 1 ? "" : "s"} · {gestures.active ? "gestures live" : "gestures off"}
+            {panels.length} panel{panels.length === 1 ? "" : "s"} ·{" "}
+            {gestures.active ? (cameraOn ? "passthrough live" : "gestures live") : "camera off"}
           </p>
         </div>
+        <button
+          onClick={toggleCamera}
+          className={cn(
+            "rounded-lg border px-2 py-1.5 transition",
+            cameraOn ? "border-primary bg-primary/20 text-primary" : "border-primary/25 text-muted-foreground",
+          )}
+          aria-label="Toggle camera passthrough"
+        >
+          <Camera className="h-4 w-4" />
+        </button>
         <button
           onClick={toggleGestures}
           className={cn(
@@ -523,6 +534,7 @@ function SpatialPage() {
         >
           <Hand className="h-4 w-4" />
         </button>
+
         <button
           onClick={() => run("workspace mode")}
           className="rounded-lg border border-primary/25 px-2 py-1.5 text-muted-foreground hover:text-primary"
