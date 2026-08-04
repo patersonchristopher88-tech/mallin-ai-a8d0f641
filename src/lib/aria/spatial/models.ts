@@ -881,3 +881,95 @@ export function buildModel(query: string): ModelDef {
       return generic(query);
   }
 }
+
+/* ------------------------------------------------- AI-generated model specs */
+
+export interface SpecPart {
+  name: string;
+  desc: string;
+  shape: "sphere" | "box" | "cylinder" | "cone" | "torus" | "capsule";
+  size: [number, number, number];
+  pos: [number, number, number];
+  color: string;
+  wireframe?: boolean;
+}
+
+export interface ModelSpec {
+  title: string;
+  subtitle: string;
+  spin?: number;
+  parts: SpecPart[];
+}
+
+function geoFor(p: SpecPart): THREE.BufferGeometry {
+  const [a, b, c] = p.size.map((n) => Math.max(0.04, Math.min(3, Math.abs(n) || 0.3))) as [number, number, number];
+  switch (p.shape) {
+    case "box":
+      return new THREE.BoxGeometry(a, b, c);
+    case "cylinder":
+      return new THREE.CylinderGeometry(a / 2, a / 2, b, 28);
+    case "cone":
+      return new THREE.ConeGeometry(a / 2, b, 28);
+    case "torus":
+      return new THREE.TorusGeometry(a / 2, Math.max(0.03, b / 4), 18, 40);
+    case "capsule":
+      return new THREE.CapsuleGeometry(a / 2, b, 8, 20);
+    default:
+      return new THREE.SphereGeometry(a / 2, 32, 24);
+  }
+}
+
+/** Build an interactive holographic model from an AI-authored spec. */
+export function buildModelFromSpec(spec: ModelSpec, query: string): ModelDef {
+  const root = new THREE.Group();
+  const parts: ModelPart[] = [];
+  const list = (spec.parts ?? []).slice(0, 12);
+
+  list.forEach((p, i) => {
+    let color = 0x6fa8c7;
+    try {
+      color = new THREE.Color(p.color || "#6fa8c7").getHex();
+    } catch {
+      /* default */
+    }
+    const mesh = new THREE.Mesh(geoFor(p), p.wireframe ? wire(color, 0.5) : mat(color));
+    const pos = (p.pos ?? [0, 0, 0]).map((n) => Math.max(-2.5, Math.min(2.5, n || 0))) as [number, number, number];
+    mesh.position.set(...pos);
+    const dirV = new THREE.Vector3(...pos);
+    if (dirV.lengthSq() < 0.01) dirV.set(Math.cos((i / list.length) * Math.PI * 2), 0.4, Math.sin((i / list.length) * Math.PI * 2));
+    dirV.normalize().multiplyScalar(2.2);
+    part(
+      parts,
+      root,
+      `p${i}`,
+      p.name || `Part ${i + 1}`,
+      p.desc || "Component of the generated assembly.",
+      mesh,
+      [dirV.x, dirV.y, dirV.z],
+    );
+  });
+
+  // scale the whole assembly to a comfortable viewing size
+  const box = new THREE.Box3().setFromObject(root);
+  const size = box.getSize(new THREE.Vector3());
+  const max = Math.max(size.x, size.y, size.z) || 1;
+  root.scale.setScalar(Math.min(2.2, 2.4 / max));
+
+  const halo = new THREE.Mesh(new THREE.TorusGeometry(1.6, 0.01, 8, 80), wire(CY, 0.35));
+  halo.rotation.x = Math.PI / 2;
+  halo.userData.decor = true;
+  root.add(halo);
+
+  return {
+    key: `spec:${query}`,
+    title: spec.title || query,
+    subtitle: spec.subtitle || "AI-generated holographic model",
+    parts,
+    root,
+    update: (t, o) => {
+      if (!o.animate) return;
+      root.rotation.y = t * (spec.spin ?? 0.3) * o.speed;
+      halo.rotation.z = t * 0.4 * o.speed;
+    },
+  };
+}

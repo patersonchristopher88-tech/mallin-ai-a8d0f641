@@ -6,6 +6,8 @@ import {
   Boxes,
   Brain,
   Calendar,
+  Camera,
+
   Cloud,
   FileText,
   Globe,
@@ -128,6 +130,8 @@ function SpatialPage() {
   const [explodeSignal, setExplodeSignal] = useState(0);
   const [collapseSignal, setCollapseSignal] = useState(0);
   const [gestureOn, setGestureOn] = useState(false);
+  const [cameraOn, setCameraOn] = useState(false);
+
 
   const recRef = useRef<{ stop: () => void; abort: () => void } | null>(null);
   const gestures = useHandGestures();
@@ -365,11 +369,27 @@ function SpatialPage() {
     if (gestures.active) {
       gestures.stop();
       setGestureOn(false);
+      setCameraOn(false);
       return;
     }
     setGestureOn(true);
     await gestures.start();
   };
+
+  /** Camera passthrough: shares the single hand-tracking stream. */
+  const toggleCamera = async () => {
+    if (cameraOn) {
+      setCameraOn(false);
+      return;
+    }
+    setCameraOn(true);
+    if (!gestures.active) {
+      setGestureOn(true);
+      await gestures.start();
+    }
+    setAria("Passthrough online. Panels are anchored over your room — use your hands to move them.");
+  };
+
 
   useEffect(() => {
     if (gestures.lastError) toast.error(gestures.lastError);
@@ -466,26 +486,51 @@ function SpatialPage() {
 
   return (
     <main className="relative flex-1 overflow-hidden">
+      {/* camera passthrough */}
+      <video
+        ref={gestures.videoRef}
+        muted
+        playsInline
+        className={cn(
+          "absolute inset-0 h-full w-full object-cover transition-opacity duration-700",
+          cameraOn && gestures.active ? "opacity-70" : "pointer-events-none h-px w-px opacity-0",
+        )}
+        style={{ transform: "scaleX(-1)" }}
+      />
+      {cameraOn && gestures.active && (
+        <div
+          className="pointer-events-none absolute inset-0"
+          style={{
+            background:
+              "radial-gradient(120% 90% at 50% 50%, transparent 30%, hsl(var(--background) / 0.85) 100%), linear-gradient(hsl(var(--mood) / 0.08), hsl(var(--mood) / 0.04))",
+          }}
+        />
+      )}
+
       {/* room */}
       <div className="pointer-events-none absolute inset-0">
         <div
           className="absolute inset-0"
           style={{
-            background:
-              "radial-gradient(120% 90% at 50% 0%, hsl(var(--mood) / 0.14), transparent 60%), radial-gradient(100% 80% at 50% 110%, hsl(var(--mood) / 0.1), transparent 60%)",
+            background: cameraOn
+              ? "none"
+              : "radial-gradient(120% 90% at 50% 0%, hsl(var(--mood) / 0.14), transparent 60%), radial-gradient(100% 80% at 50% 110%, hsl(var(--mood) / 0.1), transparent 60%)",
           }}
         />
-        <div
-          className="absolute inset-x-0 bottom-0 h-2/5 opacity-30"
-          style={{
-            backgroundImage:
-              "linear-gradient(hsl(var(--mood) / 0.35) 1px, transparent 1px), linear-gradient(90deg, hsl(var(--mood) / 0.35) 1px, transparent 1px)",
-            backgroundSize: "48px 48px",
-            transform: "perspective(420px) rotateX(62deg)",
-            transformOrigin: "bottom",
-            maskImage: "linear-gradient(to top, black, transparent)",
-          }}
-        />
+        {!cameraOn && (
+          <div
+            className="absolute inset-x-0 bottom-0 h-2/5 opacity-30"
+            style={{
+              backgroundImage:
+                "linear-gradient(hsl(var(--mood) / 0.35) 1px, transparent 1px), linear-gradient(90deg, hsl(var(--mood) / 0.35) 1px, transparent 1px)",
+              backgroundSize: "48px 48px",
+              transform: "perspective(420px) rotateX(62deg)",
+              transformOrigin: "bottom",
+              maskImage: "linear-gradient(to top, black, transparent)",
+            }}
+          />
+        )}
+
       </div>
 
       <AnimatePresence>
@@ -510,9 +555,20 @@ function SpatialPage() {
             Spatial Workspace
           </p>
           <p className="truncate font-mono text-[10px] text-muted-foreground">
-            {panels.length} panel{panels.length === 1 ? "" : "s"} · {gestures.active ? "gestures live" : "gestures off"}
+            {panels.length} panel{panels.length === 1 ? "" : "s"} ·{" "}
+            {gestures.active ? (cameraOn ? "passthrough live" : "gestures live") : "camera off"}
           </p>
         </div>
+        <button
+          onClick={toggleCamera}
+          className={cn(
+            "rounded-lg border px-2 py-1.5 transition",
+            cameraOn ? "border-primary bg-primary/20 text-primary" : "border-primary/25 text-muted-foreground",
+          )}
+          aria-label="Toggle camera passthrough"
+        >
+          <Camera className="h-4 w-4" />
+        </button>
         <button
           onClick={toggleGestures}
           className={cn(
@@ -523,6 +579,7 @@ function SpatialPage() {
         >
           <Hand className="h-4 w-4" />
         </button>
+
         <button
           onClick={() => run("workspace mode")}
           className="rounded-lg border border-primary/25 px-2 py-1.5 text-muted-foreground hover:text-primary"
@@ -605,7 +662,7 @@ function SpatialPage() {
             }}
           />
         ))}
-      <video ref={gestures.videoRef} className="pointer-events-none absolute h-px w-px opacity-0" muted playsInline />
+
 
       {/* ARIA voice line + dock */}
       <div className="absolute inset-x-0 bottom-0 z-30 space-y-2 bg-gradient-to-t from-background via-background/90 to-transparent px-3 pb-3 pt-6">

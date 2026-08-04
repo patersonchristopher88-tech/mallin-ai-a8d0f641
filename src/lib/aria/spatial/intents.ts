@@ -27,8 +27,13 @@ const RULES: { kind: SpatialIntent["kind"]; re: RegExp; capture?: boolean }[] = 
   { kind: "explode", re: /\b(break it down|explode|exploded view|take it apart|pull it apart)\b/ },
   { kind: "collapse", re: /\b(put it back|reassemble|collapse|together again)\b/ },
   { kind: "close-all", re: /\b(clear (the )?(room|workspace|everything)|close everything|dismiss all)\b/ },
-  { kind: "model", re: /\b(?:3d model|model|hologram|show me the)\s+(?:of\s+)?(?:a\s+|an\s+|the\s+)?(.+)/, capture: true },
-  { kind: "image", re: /\b(?:generate|create|make|draw)\s+(?:me\s+)?(?:an?\s+)?image\s+(?:of\s+)?(.+)/, capture: true },
+  // explicit model requests win over everything else
+  {
+    kind: "model",
+    re: /\b(?:3-?d\s+model|3-?d|hologram(?:ic model)?|holo\s*model|model)\s+(?:of\s+)?(?:a\s+|an\s+|the\s+)?(.+)/,
+    capture: true,
+  },
+  { kind: "image", re: /\b(?:generate|create|make|draw)\s+(?:me\s+)?(?:an?\s+)?(?:image|picture|photo)\s+(?:of\s+)?(.+)/, capture: true },
   { kind: "search", re: /\b(?:search (?:the )?web for|google|look up|search for)\s+(.+)/, capture: true },
   { kind: "explain", re: /\b(explain this|what does this (part )?do|tell me about this)\b/ },
   { kind: "news", re: /\b(news|headlines|what'?s happening|current events)\b/ },
@@ -45,32 +50,53 @@ const RULES: { kind: SpatialIntent["kind"]; re: RegExp; capture?: boolean }[] = 
   { kind: "chat", re: /\b(chat|talk to you|conversation)\b/ },
 ];
 
-const MODEL_HINTS =
-  /\b(earth|moon|mars|saturn|solar system|heart|engine|v8|rocket|aircraft|plane|jet|computer|motherboard|atom|scrum|building|skyscraper|human body|lungs|brain|skeleton)\b/;
+/** Anything the user asks to "show" that isn't a panel keyword becomes a model. */
+const SHOW_RE =
+  /\b(?:show(?:\s+me)?|display|render|build|visuali[sz]e|bring up|pull up|let me see)\s+(?:me\s+)?(?:a\s+|an\s+|the\s+)?(.+)/;
+
+const PANEL_WORDS =
+  /\b(news|headlines|calendar|schedule|agenda|weather|forecast|rugby|fixtures|spotify|music|playlist|projects?|documents?|files?|library|tasks?|to.?do|reminders?|fitness|steps|workout|memor(y|ies)|notes?|chat|web|settings)\b/;
+
+const STRIP =
+  /^(?:me\s+|a\s+|an\s+|the\s+|some\s+|detailed\s+|realistic\s+|interactive\s+|holographic\s+|3-?d\s+|model\s+of\s+|inside\s+of\s+)+/;
+
+function cleanQuery(s: string) {
+  return s
+    .replace(/[.?!]+$/, "")
+    .replace(STRIP, "")
+    .replace(/^(?:model\s+of|hologram\s+of)\s+/, "")
+    .trim();
+}
 
 /** Fast, offline intent parser. Returns "unknown" when nothing matches. */
 export function parseIntent(input: string): SpatialIntent {
   const raw = input.trim();
-  const text = raw.toLowerCase().replace(/^(hey |ok |aria[, ]*)+/g, "");
-
-  // A direct model noun beats generic "show me" phrasing.
-  if (/\b(show|display|open|bring up|pull up|render|build|generate)\b/.test(text)) {
-    const m = text.match(MODEL_HINTS);
-    if (m && !/\bnews\b/.test(text)) return { kind: "model", query: m[1], raw };
-  }
+  const text = raw
+    .toLowerCase()
+    .replace(/^(hey |ok |okay |yo |aria[,: ]*|please )+/g, "")
+    .trim();
 
   for (const r of RULES) {
     const m = text.match(r.re);
     if (!m) continue;
     if (r.capture) {
-      const q = (m[1] ?? "").replace(/[.?!]+$/, "").trim();
+      const q = cleanQuery(m[1] ?? "");
       if (!q) continue;
       return { kind: r.kind, query: q, raw };
     }
     return { kind: r.kind, raw };
   }
+
+  // "show me a lion" / "render a jet engine" → generate a model for it
+  const show = text.match(SHOW_RE);
+  if (show) {
+    const q = cleanQuery(show[1] ?? "");
+    if (q && !PANEL_WORDS.test(q)) return { kind: "model", query: q, raw };
+  }
+
   return { kind: "unknown", raw };
 }
+
 
 export const PANEL_META: Record<PanelKind, { title: string; icon: string; w: number; h: number }> = {
   news: { title: "News Board", icon: "newspaper", w: 460, h: 420 },

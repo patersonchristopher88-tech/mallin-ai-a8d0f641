@@ -1,7 +1,15 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import * as THREE from "three";
-import { Layers, Pause, Play, Eye, EyeOff, RotateCw, Sparkles } from "lucide-react";
-import { buildModel, type ModelDef, type ModelPart } from "@/lib/aria/spatial/models";
+import { Layers, Pause, Play, Eye, EyeOff, RotateCw, Sparkles, Loader2 } from "lucide-react";
+import {
+  buildModel,
+  buildModelFromSpec,
+  resolveModelKey,
+  type ModelDef,
+  type ModelPart,
+  type ModelSpec,
+} from "@/lib/aria/spatial/models";
+import { spatialCall } from "@/components/aria/spatial/panels";
 import { cn } from "@/lib/utils";
 
 interface Props {
@@ -23,8 +31,35 @@ export function ModelStage({ query, explodeSignal, collapseSignal, onExplain }: 
   const [labels, setLabels] = useState(true);
   const [selected, setSelected] = useState<string | null>(null);
   const [hidden, setHidden] = useState<Set<string>>(new Set());
+  const [generating, setGenerating] = useState(false);
 
-  const model: ModelDef = useMemo(() => buildModel(query), [query]);
+  const fallback: ModelDef = useMemo(() => buildModel(query), [query]);
+  const [model, setModel] = useState<ModelDef>(fallback);
+
+  // Anything outside the hand-built catalog is designed on the fly by ARIA.
+  useEffect(() => {
+    setModel(fallback);
+    setSelected(null);
+    setHidden(new Set());
+    if (resolveModelKey(query) !== "generic") return;
+    let cancelled = false;
+    setGenerating(true);
+    spatialCall<{ spec: ModelSpec }>({ action: "model-spec", query })
+      .then((d) => {
+        if (cancelled || !d?.spec?.parts?.length) return;
+        setModel(buildModelFromSpec(d.spec, query));
+      })
+      .catch(() => {
+        /* keep procedural fallback */
+      })
+      .finally(() => {
+        if (!cancelled) setGenerating(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [fallback, query]);
+
   const stateRef = useRef({ explode, animate, speed, selected, hidden });
   stateRef.current = { explode, animate, speed, selected, hidden };
 
@@ -34,6 +69,7 @@ export function ModelStage({ query, explodeSignal, collapseSignal, onExplain }: 
   useEffect(() => {
     if (collapseSignal > 0) setExplode(0);
   }, [collapseSignal]);
+
 
   useEffect(() => {
     const mount = mountRef.current;
@@ -224,9 +260,15 @@ export function ModelStage({ query, explodeSignal, collapseSignal, onExplain }: 
             )}
           </div>
         )}
+        {generating && (
+          <div className="absolute right-2 top-2 flex items-center gap-1.5 rounded-full border border-primary/40 bg-background/70 px-2 py-1 font-mono text-[9px] uppercase tracking-widest text-primary">
+            <Loader2 className="h-3 w-3 animate-spin" /> designing model
+          </div>
+        )}
         <div className="pointer-events-none absolute bottom-2 right-2 font-mono text-[9px] uppercase tracking-widest text-primary/60">
           drag · orbit / pinch · zoom / tap · inspect
         </div>
+
       </div>
 
       <div className="flex flex-wrap items-center gap-1.5">
