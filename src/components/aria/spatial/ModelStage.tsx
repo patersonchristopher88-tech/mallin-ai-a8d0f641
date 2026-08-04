@@ -260,9 +260,15 @@ export function ModelStage({ query, explodeSignal, collapseSignal, onExplain }: 
             )}
           </div>
         )}
+        {generating && (
+          <div className="absolute right-2 top-2 flex items-center gap-1.5 rounded-full border border-primary/40 bg-background/70 px-2 py-1 font-mono text-[9px] uppercase tracking-widest text-primary">
+            <Loader2 className="h-3 w-3 animate-spin" /> designing model
+          </div>
+        )}
         <div className="pointer-events-none absolute bottom-2 right-2 font-mono text-[9px] uppercase tracking-widest text-primary/60">
           drag · orbit / pinch · zoom / tap · inspect
         </div>
+
       </div>
 
       <div className="flex flex-wrap items-center gap-1.5">
