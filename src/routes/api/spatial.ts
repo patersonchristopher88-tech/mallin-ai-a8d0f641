@@ -5,7 +5,7 @@ import { generateText } from "ai";
 const MODEL = "google/gemini-3.6-flash";
 
 interface Body {
-  action: "news" | "weather" | "brief" | "summarize" | "explain" | "search";
+  action: "news" | "weather" | "brief" | "summarize" | "explain" | "search" | "model-spec";
   query?: string;
   topic?: string;
   text?: string;
