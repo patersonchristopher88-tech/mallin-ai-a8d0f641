@@ -322,7 +322,52 @@ export function ModelStage({
 
   const sel = model.parts.find((p) => p.id === selected);
 
+  /* ---------------- real generated GLB ---------------- */
+  if (result) {
+    return (
+      <div className="flex h-full flex-col gap-2">
+        <div className="relative flex-1 overflow-hidden rounded-xl border border-primary/25 bg-black/50">
+          <ModelViewer3D
+            url={result.modelUrl}
+            {...(command ? { command } : {})}
+            onDiagnostics={onDiagnostics}
+            onError={(m) => setGenError(m)}
+          />
+          <div className="pointer-events-none absolute left-2 top-2 space-y-1">
+            <p className="font-display text-xs uppercase tracking-[0.25em] text-primary hud-text-glow">{query}</p>
+            <p className="font-mono text-[9px] uppercase tracking-widest text-emerald-400">
+              stability · glb · {(result.bytes / 1024 / 1024).toFixed(1)}mb
+            </p>
+          </div>
+          <div className="pointer-events-none absolute bottom-2 right-2 font-mono text-[9px] uppercase tracking-widest text-primary/60">
+            drag · orbit / pinch · zoom / tap · isolate
+          </div>
+        </div>
+
+        <div className="flex flex-wrap items-center gap-1.5">
+          <Ctl onClick={() => setShowDiag((s) => !s)} active={showDiag} Icon={Gauge}>
+            Diagnostics
+          </Ctl>
+          <Ctl onClick={() => setAttempt((a) => a + 1)} Icon={RefreshCw}>
+            Regenerate
+          </Ctl>
+          <Ctl onClick={() => setResult(null)} Icon={Boxes}>
+            Hologram
+          </Ctl>
+          <Ctl onClick={() => onExplain(query, query, `A generated 3D model of ${query}.`)} Icon={Sparkles}>
+            Explain
+          </Ctl>
+        </div>
+
+        {showDiag && (
+          <ModelDiagnostics status={genStatus} result={result} diag={diag} error={genError} />
+        )}
+      </div>
+    );
+  }
+
   return (
+
     <div className="flex h-full flex-col gap-2">
       <div className="relative flex-1 overflow-hidden rounded-xl border border-primary/20 bg-black/40">
         <div ref={mountRef} className="absolute inset-0" />
