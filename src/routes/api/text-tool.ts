@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { streamText, tool, stepCountIs } from "ai";
 import { z } from "zod";
-import { createLovableAiGatewayProvider } from "@/lib/ai-gateway.server";
+import { resolveModel } from "@/lib/ai-provider.server";
 
 // Generic streaming endpoint powering every text-based Studio tool.
 // Body: { toolId, textPreset?, input: Record<string,string>, prompt: string }
@@ -84,7 +84,7 @@ export const Route = createFileRoute("/api/text-tool")({
           const presetKey = body.textPreset ?? body.toolId;
           const system = SYSTEM_PROMPTS[presetKey] ?? SYSTEM_PROMPTS.chat;
 
-          const gateway = createLovableAiGatewayProvider(key);
+          const gateway = (_id?: string) => resolveModel().model;
           const model = gateway("google/gemini-3-flash-preview");
 
           // Compose user message from prompt + any structured fields (tone, length, etc.).

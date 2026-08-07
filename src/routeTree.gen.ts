@@ -18,6 +18,7 @@ import { Route as ApiVisionRouteImport } from './routes/api/vision'
 import { Route as ApiTextToolRouteImport } from './routes/api/text-tool'
 import { Route as ApiSttRouteImport } from './routes/api/stt'
 import { Route as ApiSpatialRouteImport } from './routes/api/spatial'
+import { Route as ApiModel3dRouteImport } from './routes/api/model3d'
 import { Route as ApiGenerateVideoRouteImport } from './routes/api/generate-video'
 import { Route as ApiGenerateImageRouteImport } from './routes/api/generate-image'
 import { Route as ApiEditImageRouteImport } from './routes/api/edit-image'
@@ -86,6 +87,11 @@ const ApiSttRoute = ApiSttRouteImport.update({
 const ApiSpatialRoute = ApiSpatialRouteImport.update({
   id: '/api/spatial',
   path: '/api/spatial',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiModel3dRoute = ApiModel3dRouteImport.update({
+  id: '/api/model3d',
+  path: '/api/model3d',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiGenerateVideoRoute = ApiGenerateVideoRouteImport.update({
@@ -241,6 +247,7 @@ export interface FileRoutesByFullPath {
   '/api/edit-image': typeof ApiEditImageRoute
   '/api/generate-image': typeof ApiGenerateImageRoute
   '/api/generate-video': typeof ApiGenerateVideoRoute
+  '/api/model3d': typeof ApiModel3dRoute
   '/api/spatial': typeof ApiSpatialRoute
   '/api/stt': typeof ApiSttRoute
   '/api/text-tool': typeof ApiTextToolRoute
@@ -275,6 +282,7 @@ export interface FileRoutesByTo {
   '/api/edit-image': typeof ApiEditImageRoute
   '/api/generate-image': typeof ApiGenerateImageRoute
   '/api/generate-video': typeof ApiGenerateVideoRoute
+  '/api/model3d': typeof ApiModel3dRoute
   '/api/spatial': typeof ApiSpatialRoute
   '/api/stt': typeof ApiSttRoute
   '/api/text-tool': typeof ApiTextToolRoute
@@ -312,6 +320,7 @@ export interface FileRoutesById {
   '/api/edit-image': typeof ApiEditImageRoute
   '/api/generate-image': typeof ApiGenerateImageRoute
   '/api/generate-video': typeof ApiGenerateVideoRoute
+  '/api/model3d': typeof ApiModel3dRoute
   '/api/spatial': typeof ApiSpatialRoute
   '/api/stt': typeof ApiSttRoute
   '/api/text-tool': typeof ApiTextToolRoute
@@ -349,6 +358,7 @@ export interface FileRouteTypes {
     | '/api/edit-image'
     | '/api/generate-image'
     | '/api/generate-video'
+    | '/api/model3d'
     | '/api/spatial'
     | '/api/stt'
     | '/api/text-tool'
@@ -383,6 +393,7 @@ export interface FileRouteTypes {
     | '/api/edit-image'
     | '/api/generate-image'
     | '/api/generate-video'
+    | '/api/model3d'
     | '/api/spatial'
     | '/api/stt'
     | '/api/text-tool'
@@ -419,6 +430,7 @@ export interface FileRouteTypes {
     | '/api/edit-image'
     | '/api/generate-image'
     | '/api/generate-video'
+    | '/api/model3d'
     | '/api/spatial'
     | '/api/stt'
     | '/api/text-tool'
@@ -441,6 +453,7 @@ export interface RootRouteChildren {
   ApiEditImageRoute: typeof ApiEditImageRoute
   ApiGenerateImageRoute: typeof ApiGenerateImageRoute
   ApiGenerateVideoRoute: typeof ApiGenerateVideoRoute
+  ApiModel3dRoute: typeof ApiModel3dRoute
   ApiSpatialRoute: typeof ApiSpatialRoute
   ApiSttRoute: typeof ApiSttRoute
   ApiTextToolRoute: typeof ApiTextToolRoute
@@ -513,6 +526,13 @@ declare module '@tanstack/react-router' {
       path: '/api/spatial'
       fullPath: '/api/spatial'
       preLoaderRoute: typeof ApiSpatialRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/model3d': {
+      id: '/api/model3d'
+      path: '/api/model3d'
+      fullPath: '/api/model3d'
+      preLoaderRoute: typeof ApiModel3dRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/generate-video': {
@@ -766,6 +786,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiEditImageRoute: ApiEditImageRoute,
   ApiGenerateImageRoute: ApiGenerateImageRoute,
   ApiGenerateVideoRoute: ApiGenerateVideoRoute,
+  ApiModel3dRoute: ApiModel3dRoute,
   ApiSpatialRoute: ApiSpatialRoute,
   ApiSttRoute: ApiSttRoute,
   ApiTextToolRoute: ApiTextToolRoute,
@@ -777,13 +798,3 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}

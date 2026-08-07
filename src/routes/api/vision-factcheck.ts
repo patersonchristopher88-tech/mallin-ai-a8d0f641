@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { generateObject } from "ai";
 import { z } from "zod";
-import { createLovableAiGatewayProvider } from "@/lib/ai-gateway.server";
+import { resolveModel } from "@/lib/ai-provider.server";
 
 // Fact-check a vision-scan claim. Searches DuckDuckGo + Wikipedia,
 // then asks the model to cross-reference and score confidence.
@@ -81,9 +81,8 @@ export const Route = createFileRoute("/api/vision-factcheck")({
           const [ddgResults, wikiResults] = await Promise.all([ddg(claim), wiki(claim)]);
           const sources = [...wikiResults, ...ddgResults].slice(0, 8);
 
-          const gateway = createLovableAiGatewayProvider(key);
           const { object } = await generateObject({
-            model: gateway("google/gemini-3-flash-preview"),
+            model: resolveModel().model,
             schema: z.object({
               verdict: z.enum(["supported", "mixed", "unsupported", "unknown"]),
               confidence: z.number(),

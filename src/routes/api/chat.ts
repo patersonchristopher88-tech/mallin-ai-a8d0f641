@@ -9,7 +9,7 @@ import {
 } from "ai";
 import { z } from "zod";
 import { createClient } from "@supabase/supabase-js";
-import { createLovableAiGatewayProvider } from "@/lib/ai-gateway.server";
+import { resolveModel } from "@/lib/ai-provider.server";
 import { buildSystemPrompt, type PersonaKey } from "@/lib/aria/personas";
 
 type ChatRequestBody = {
@@ -81,7 +81,7 @@ export const Route = createFileRoute("/api/chat")({
             timezone: profile?.timezone ?? null,
           });
 
-          const gateway = createLovableAiGatewayProvider(LOVABLE_API_KEY);
+          const gateway = (_id?: string) => resolveModel().model;
           const model = gateway(profile?.default_chat_model ?? "google/gemini-3-flash-preview");
 
           // ==================== AGENT TOOLS ====================
