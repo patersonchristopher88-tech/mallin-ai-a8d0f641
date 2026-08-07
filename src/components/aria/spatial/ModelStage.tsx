@@ -478,6 +478,8 @@ export function ModelStage({
       </div>
 
       {sel && <p className="text-xs leading-relaxed text-muted-foreground">{sel.desc}</p>}
+
+      {showDiag && <ModelDiagnostics status={genStatus} result={result} diag={diag} error={genError} busy={genStatus === "generating"} />}
     </div>
   );
 }
