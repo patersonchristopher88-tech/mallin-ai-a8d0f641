@@ -400,7 +400,7 @@ function VisionPro() {
       {/* Mode strip */}
       <div className="scrollbar-none flex gap-1.5 overflow-x-auto border-b border-primary/10 bg-background/70 px-3 py-2 backdrop-blur">
         {MODES.map((m) => {
-          const Icon = m.icon;
+          const Icon = m.icon as React.ComponentType<{ className?: string }>;
           const on = scanMode === m.id;
           return (
             <button

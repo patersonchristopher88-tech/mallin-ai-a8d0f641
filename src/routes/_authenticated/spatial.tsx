@@ -46,6 +46,7 @@ import { MemoryManager } from "@/components/aria/MemoryManager";
 import { JarvisOrb } from "@/components/aria/JarvisOrb";
 import { useHandGestures } from "@/lib/aria/spatial/useHandGestures";
 import { PANEL_META, WORKSPACE_LAYOUT, parseIntent, type PanelKind } from "@/lib/aria/spatial/intents";
+import { parseModelOp, type ModelOp } from "@/lib/aria/spatial/model3d";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/_authenticated/spatial")({
@@ -129,6 +130,7 @@ function SpatialPage() {
   const [dim, setDim] = useState(false);
   const [explodeSignal, setExplodeSignal] = useState(0);
   const [collapseSignal, setCollapseSignal] = useState(0);
+  const [modelCommand, setModelCommand] = useState<{ op: ModelOp; nonce: number } | null>(null);
   const [gestureOn, setGestureOn] = useState(false);
   const [cameraOn, setCameraOn] = useState(false);
 
@@ -214,6 +216,25 @@ function SpatialPage() {
 
   const run = useCallback(
     (input: string) => {
+      // Direct manipulation of a live 3D asset takes priority over panel intents.
+      const hasModel = panelsRef.current.some((p) => p.kind === "model");
+      const op = parseModelOp(input);
+      if (hasModel && op) {
+        setModelCommand((c) => ({ op, nonce: (c?.nonce ?? 0) + 1 }));
+        const said: Record<ModelOp["op"], string> = {
+          scale: op.op === "scale" && op.factor > 1 ? "Scaling it up." : "Scaling it down.",
+          rotate: "Rotating.",
+          view: "Changing the viewing angle.",
+          reset: "Back to the default view.",
+          focus: "Framing the model.",
+          spin: "Rotation toggled.",
+          wireframe: "Switching to wireframe.",
+          isolate: "Isolating the selected part.",
+        };
+        setAria(said[op.op]);
+        return;
+      }
+
       const intent = parseIntent(input);
       switch (intent.kind) {
         case "workspace":
@@ -418,6 +439,7 @@ function SpatialPage() {
       case "model":
         return (
           <ModelStage
+            command={modelCommand}
             query={p.query ?? "earth"}
             explodeSignal={explodeSignal}
             collapseSignal={collapseSignal}

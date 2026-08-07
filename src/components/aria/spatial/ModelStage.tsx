@@ -1,6 +1,18 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import * as THREE from "three";
-import { Layers, Pause, Play, Eye, EyeOff, RotateCw, Sparkles, Loader2 } from "lucide-react";
+import {
+  Layers,
+  Pause,
+  Play,
+  Eye,
+  EyeOff,
+  RotateCw,
+  Sparkles,
+  Loader2,
+  RefreshCw,
+  Boxes,
+  Gauge,
+} from "lucide-react";
 import {
   buildModel,
   buildModelFromSpec,
@@ -10,6 +22,14 @@ import {
   type ModelSpec,
 } from "@/lib/aria/spatial/models";
 import { spatialCall } from "@/components/aria/spatial/panels";
+import { ModelViewer3D } from "@/components/aria/spatial/ModelViewer3D";
+import { ModelDiagnostics } from "@/components/aria/spatial/ModelDiagnostics";
+import {
+  generateModel3D,
+  type Model3DDiagnostics,
+  type Model3DResult,
+  type ModelOp,
+} from "@/lib/aria/spatial/model3d";
 import { cn } from "@/lib/utils";
 
 interface Props {
@@ -17,13 +37,29 @@ interface Props {
   explodeSignal: number;
   collapseSignal: number;
   onExplain: (partName: string, modelTitle: string, desc: string) => void;
+  /** Voice/text manipulation command for the live asset. */
+  command?: { op: ModelOp; nonce: number } | null;
+  /** Camera frame for vision-to-3D ("scan this and build it"). */
+  imageDataUrl?: string | null;
 }
 
+type GenStatus = "idle" | "enhancing" | "generating" | "ready" | "error";
+
 /**
- * Interactive holographic 3D stage: orbit / pinch-zoom, exploded view,
- * part isolation, labels, animation + speed controls.
+ * Interactive holographic 3D stage.
+ *
+ * Primary path: Stability AI generates a real textured GLB which is rendered
+ * with PBR materials, HDR lighting and shadows. The procedural hologram acts
+ * only as the live placeholder while that runs, or if generation fails.
  */
-export function ModelStage({ query, explodeSignal, collapseSignal, onExplain }: Props) {
+export function ModelStage({
+  query,
+  explodeSignal,
+  collapseSignal,
+  onExplain,
+  command,
+  imageDataUrl,
+}: Props) {
   const mountRef = useRef<HTMLDivElement | null>(null);
   const [explode, setExplode] = useState(0);
   const [animate, setAnimate] = useState(true);
@@ -36,7 +72,47 @@ export function ModelStage({ query, explodeSignal, collapseSignal, onExplain }: 
   const fallback: ModelDef = useMemo(() => buildModel(query), [query]);
   const [model, setModel] = useState<ModelDef>(fallback);
 
-  // Anything outside the hand-built catalog is designed on the fly by ARIA.
+  /* ------------------------------------------------- real 3D asset (Stability) */
+  const [genStatus, setGenStatus] = useState<GenStatus>("idle");
+  const [result, setResult] = useState<Model3DResult | null>(null);
+  const [diag, setDiag] = useState<Model3DDiagnostics | null>(null);
+  const [genError, setGenError] = useState<string | null>(null);
+  const [showDiag, setShowDiag] = useState(false);
+  const [attempt, setAttempt] = useState(0);
+
+  useEffect(() => {
+    let cancelled = false;
+    setResult(null);
+    setDiag(null);
+    setGenError(null);
+    setGenStatus("enhancing");
+    const t = setTimeout(() => !cancelled && setGenStatus("generating"), 1200);
+    generateModel3D({
+      prompt: query,
+      ...(imageDataUrl ? { imageDataUrl } : {}),
+      quality: "fast",
+    })
+      .then((r) => {
+        if (cancelled) return;
+        setResult(r);
+        setGenStatus("ready");
+      })
+      .catch((e: unknown) => {
+        if (cancelled) return;
+        setGenError(e instanceof Error ? e.message : "3D generation failed");
+        setGenStatus("error");
+      })
+      .finally(() => clearTimeout(t));
+    return () => {
+      cancelled = true;
+      clearTimeout(t);
+    };
+  }, [query, imageDataUrl, attempt]);
+
+  const onDiagnostics = useCallback((d: Model3DDiagnostics) => setDiag(d), []);
+
+  // Anything outside the hand-built catalog is designed on the fly by ARIA
+  // so the placeholder hologram still resembles the subject.
   useEffect(() => {
     setModel(fallback);
     setSelected(null);
@@ -59,6 +135,7 @@ export function ModelStage({ query, explodeSignal, collapseSignal, onExplain }: 
       cancelled = true;
     };
   }, [fallback, query]);
+
 
   const stateRef = useRef({ explode, animate, speed, selected, hidden });
   stateRef.current = { explode, animate, speed, selected, hidden };
@@ -245,7 +322,52 @@ export function ModelStage({ query, explodeSignal, collapseSignal, onExplain }: 
 
   const sel = model.parts.find((p) => p.id === selected);
 
+  /* ---------------- real generated GLB ---------------- */
+  if (result) {
+    return (
+      <div className="flex h-full flex-col gap-2">
+        <div className="relative flex-1 overflow-hidden rounded-xl border border-primary/25 bg-black/50">
+          <ModelViewer3D
+            url={result.modelUrl}
+            {...(command ? { command } : {})}
+            onDiagnostics={onDiagnostics}
+            onError={(m) => setGenError(m)}
+          />
+          <div className="pointer-events-none absolute left-2 top-2 space-y-1">
+            <p className="font-display text-xs uppercase tracking-[0.25em] text-primary hud-text-glow">{query}</p>
+            <p className="font-mono text-[9px] uppercase tracking-widest text-emerald-400">
+              stability · glb · {(result.bytes / 1024 / 1024).toFixed(1)}mb
+            </p>
+          </div>
+          <div className="pointer-events-none absolute bottom-2 right-2 font-mono text-[9px] uppercase tracking-widest text-primary/60">
+            drag · orbit / pinch · zoom / tap · isolate
+          </div>
+        </div>
+
+        <div className="flex flex-wrap items-center gap-1.5">
+          <Ctl onClick={() => setShowDiag((s) => !s)} active={showDiag} Icon={Gauge}>
+            Diagnostics
+          </Ctl>
+          <Ctl onClick={() => setAttempt((a) => a + 1)} Icon={RefreshCw}>
+            Regenerate
+          </Ctl>
+          <Ctl onClick={() => setResult(null)} Icon={Boxes}>
+            Hologram
+          </Ctl>
+          <Ctl onClick={() => onExplain(query, query, `A generated 3D model of ${query}.`)} Icon={Sparkles}>
+            Explain
+          </Ctl>
+        </div>
+
+        {showDiag && (
+          <ModelDiagnostics status={genStatus} result={result} diag={diag} error={genError} />
+        )}
+      </div>
+    );
+  }
+
   return (
+
     <div className="flex h-full flex-col gap-2">
       <div className="relative flex-1 overflow-hidden rounded-xl border border-primary/20 bg-black/40">
         <div ref={mountRef} className="absolute inset-0" />
@@ -260,11 +382,39 @@ export function ModelStage({ query, explodeSignal, collapseSignal, onExplain }: 
             )}
           </div>
         )}
-        {generating && (
-          <div className="absolute right-2 top-2 flex items-center gap-1.5 rounded-full border border-primary/40 bg-background/70 px-2 py-1 font-mono text-[9px] uppercase tracking-widest text-primary">
-            <Loader2 className="h-3 w-3 animate-spin" /> designing model
-          </div>
-        )}
+        <div className="absolute right-2 top-2 flex flex-col items-end gap-1">
+          {generating && (
+            <div className="flex items-center gap-1.5 rounded-full border border-primary/40 bg-background/70 px-2 py-1 font-mono text-[9px] uppercase tracking-widest text-primary">
+              <Loader2 className="h-3 w-3 animate-spin" /> designing hologram
+            </div>
+          )}
+          {(genStatus === "enhancing" || genStatus === "generating") && (
+            <div className="flex items-center gap-1.5 rounded-full border border-primary/40 bg-background/70 px-2 py-1 font-mono text-[9px] uppercase tracking-widest text-primary">
+              <Loader2 className="h-3 w-3 animate-spin" />
+              {genStatus === "enhancing" ? "enhancing prompt" : "synthesising 3d asset"}
+            </div>
+          )}
+          {genStatus === "error" && (
+            <button
+              onClick={() => setAttempt((a) => a + 1)}
+              className="flex items-center gap-1.5 rounded-full border border-destructive/50 bg-destructive/15 px-2 py-1 font-mono text-[9px] uppercase tracking-widest text-destructive"
+            >
+              <RefreshCw className="h-3 w-3" /> retry 3d
+            </button>
+          )}
+          <button
+            onClick={() => setShowDiag((s) => !s)}
+            className={cn(
+              "flex items-center gap-1.5 rounded-full border px-2 py-1 font-mono text-[9px] uppercase tracking-widest transition",
+              showDiag
+                ? "border-primary bg-primary/20 text-primary"
+                : "border-primary/30 bg-background/70 text-muted-foreground",
+            )}
+          >
+            <Gauge className="h-3 w-3" /> diagnostics
+          </button>
+        </div>
+
         <div className="pointer-events-none absolute bottom-2 right-2 font-mono text-[9px] uppercase tracking-widest text-primary/60">
           drag · orbit / pinch · zoom / tap · inspect
         </div>
@@ -328,6 +478,8 @@ export function ModelStage({ query, explodeSignal, collapseSignal, onExplain }: 
       </div>
 
       {sel && <p className="text-xs leading-relaxed text-muted-foreground">{sel.desc}</p>}
+
+      {showDiag && <ModelDiagnostics status={genStatus} result={result} diag={diag} error={genError} busy={genStatus === "generating"} />}
     </div>
   );
 }

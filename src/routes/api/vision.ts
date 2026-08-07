@@ -1,4 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { resolveChatEndpoint } from "@/lib/ai-provider.server";
 
 /**
  * Live-vision endpoint. Accepts a base64 JPEG frame + optional prompt,
@@ -11,8 +12,6 @@ export const Route = createFileRoute("/api/vision")({
         try {
           const auth = request.headers.get("authorization");
           if (!auth?.startsWith("Bearer ")) return new Response("Unauthorized", { status: 401 });
-          const LOVABLE_API_KEY = process.env.LOVABLE_API_KEY;
-          if (!LOVABLE_API_KEY) return new Response("Missing LOVABLE_API_KEY", { status: 500 });
 
           const { imageBase64, prompt, brief } = (await request.json()) as {
             imageBase64: string;
@@ -29,14 +28,12 @@ export const Route = createFileRoute("/api/vision")({
             ? "You are ARIA's live vision system. In ONE short sentence (max 18 words) describe what you see in the camera frame. Be specific, punchy, cinematic. No filler like 'I see' or 'the image shows'."
             : "You are ARIA's live vision system. Describe the camera frame with clear, useful detail. Answer any user question about it directly.";
 
-          const res = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+          const ep = resolveChatEndpoint();
+          const res = await fetch(ep.url, {
             method: "POST",
-            headers: {
-              Authorization: `Bearer ${LOVABLE_API_KEY}`,
-              "Content-Type": "application/json",
-            },
+            headers: ep.headers,
             body: JSON.stringify({
-              model: "google/gemini-3-flash-preview",
+              model: ep.model,
               messages: [
                 { role: "system", content: sys },
                 {
