@@ -382,11 +382,39 @@ export function ModelStage({
             )}
           </div>
         )}
-        {generating && (
-          <div className="absolute right-2 top-2 flex items-center gap-1.5 rounded-full border border-primary/40 bg-background/70 px-2 py-1 font-mono text-[9px] uppercase tracking-widest text-primary">
-            <Loader2 className="h-3 w-3 animate-spin" /> designing model
-          </div>
-        )}
+        <div className="absolute right-2 top-2 flex flex-col items-end gap-1">
+          {generating && (
+            <div className="flex items-center gap-1.5 rounded-full border border-primary/40 bg-background/70 px-2 py-1 font-mono text-[9px] uppercase tracking-widest text-primary">
+              <Loader2 className="h-3 w-3 animate-spin" /> designing hologram
+            </div>
+          )}
+          {(genStatus === "enhancing" || genStatus === "generating") && (
+            <div className="flex items-center gap-1.5 rounded-full border border-primary/40 bg-background/70 px-2 py-1 font-mono text-[9px] uppercase tracking-widest text-primary">
+              <Loader2 className="h-3 w-3 animate-spin" />
+              {genStatus === "enhancing" ? "enhancing prompt" : "synthesising 3d asset"}
+            </div>
+          )}
+          {genStatus === "error" && (
+            <button
+              onClick={() => setAttempt((a) => a + 1)}
+              className="flex items-center gap-1.5 rounded-full border border-destructive/50 bg-destructive/15 px-2 py-1 font-mono text-[9px] uppercase tracking-widest text-destructive"
+            >
+              <RefreshCw className="h-3 w-3" /> retry 3d
+            </button>
+          )}
+          <button
+            onClick={() => setShowDiag((s) => !s)}
+            className={cn(
+              "flex items-center gap-1.5 rounded-full border px-2 py-1 font-mono text-[9px] uppercase tracking-widest transition",
+              showDiag
+                ? "border-primary bg-primary/20 text-primary"
+                : "border-primary/30 bg-background/70 text-muted-foreground",
+            )}
+          >
+            <Gauge className="h-3 w-3" /> diagnostics
+          </button>
+        </div>
+
         <div className="pointer-events-none absolute bottom-2 right-2 font-mono text-[9px] uppercase tracking-widest text-primary/60">
           drag · orbit / pinch · zoom / tap · inspect
         </div>
