@@ -9,7 +9,7 @@ import {
 } from "ai";
 import { z } from "zod";
 import { createClient } from "@supabase/supabase-js";
-import { resolveModel } from "@/lib/ai-provider.server";
+import { resolveWorkingModel, AiCreditsExhaustedError } from "@/lib/ai-provider.server";
 import { buildSystemPrompt, type PersonaKey } from "@/lib/aria/personas";
 
 type ChatRequestBody = {
