@@ -42,13 +42,19 @@ function ThreadView() {
   });
 
   const initialMessages: UIMessage[] = useMemo(() => {
-    return (initial.data ?? []).map(
-      (m): UIMessage => ({
-        id: m.ai_sdk_id ?? m.id,
+    const seen = new Set<string>();
+    const out: UIMessage[] = [];
+    for (const m of initial.data ?? []) {
+      const id = m.ai_sdk_id && m.ai_sdk_id.length > 0 ? m.ai_sdk_id : m.id;
+      if (seen.has(id)) continue;
+      seen.add(id);
+      out.push({
+        id,
         role: m.role as UIMessage["role"],
         parts: (m.parts as UIMessage["parts"]) ?? [],
-      }),
-    );
+      });
+    }
+    return out;
   }, [initial.data]);
 
   if (initial.isLoading) {

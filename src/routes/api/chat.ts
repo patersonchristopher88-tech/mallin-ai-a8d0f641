@@ -9,7 +9,7 @@ import {
 } from "ai";
 import { z } from "zod";
 import { createClient } from "@supabase/supabase-js";
-import { resolveModel } from "@/lib/ai-provider.server";
+import { resolveWorkingModel, AiCreditsExhaustedError } from "@/lib/ai-provider.server";
 import { buildSystemPrompt, type PersonaKey } from "@/lib/aria/personas";
 
 type ChatRequestBody = {
@@ -81,8 +81,9 @@ export const Route = createFileRoute("/api/chat")({
             timezone: profile?.timezone ?? null,
           });
 
-          const gateway = (_id?: string) => resolveModel().model;
-          const model = gateway(profile?.default_chat_model ?? "google/gemini-3-flash-preview");
+          const resolved = await resolveWorkingModel();
+          const gateway = (_id?: string) => resolved.model;
+          const model = resolved.model;
 
           // ==================== AGENT TOOLS ====================
           const tools = {
@@ -210,7 +211,9 @@ export const Route = createFileRoute("/api/chat")({
                 );
 
                 const toInsert = finalMessages
-                  .filter((m) => !existingIds.has(m.id))
+                  // Skip messages without a stable id — they'd be re-inserted
+                  // every turn and duplicate the thread.
+                  .filter((m) => m.id && !existingIds.has(m.id))
                   .map((m) => ({
                     thread_id: threadId,
                     user_id: userId,
@@ -313,6 +316,9 @@ export const Route = createFileRoute("/api/chat")({
           });
         } catch (err) {
           console.error("[chat] error:", err);
+          if (err instanceof AiCreditsExhaustedError) {
+            return new Response(err.message, { status: 402 });
+          }
           const msg = err instanceof Error ? err.message : "Internal error";
           return new Response(msg, { status: 500 });
         }
