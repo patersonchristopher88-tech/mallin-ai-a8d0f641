@@ -2,7 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { generateText, generateObject } from "ai";
 import { z } from "zod";
 import { createClient } from "@supabase/supabase-js";
-import { resolveModel } from "@/lib/ai-provider.server";
+import { resolveWorkingModel } from "@/lib/ai-provider.server";
 import { buildSystemPrompt, type PersonaKey } from "@/lib/aria/personas";
 
 type Turn = { role: "user" | "assistant"; content: string };
@@ -64,7 +64,8 @@ export const Route = createFileRoute("/api/call")({
               .limit(24),
           ]);
 
-          const gateway = (_id?: string) => resolveModel().model;
+          const resolved = await resolveWorkingModel();
+          const gateway = (_id?: string) => resolved.model;
           const model = gateway("google/gemini-3.6-flash");
 
           if (body.mode === "summary") {

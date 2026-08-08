@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { resolveModel } from "@/lib/ai-provider.server";
+import { resolveWorkingModel } from "@/lib/ai-provider.server";
 import { generateText } from "ai";
 
 const MODEL = "google/gemini-3.6-flash";
@@ -64,7 +64,7 @@ async function fetchWeather(lat?: number, lon?: number) {
 
 async function ai(key: string, system: string, prompt: string) {
   const { text } = await generateText({
-    model: resolveModel().model,
+    model: (await resolveWorkingModel()).model,
     system,
     prompt,
   });
