@@ -81,8 +81,9 @@ export const Route = createFileRoute("/api/chat")({
             timezone: profile?.timezone ?? null,
           });
 
-          const gateway = (_id?: string) => resolveModel().model;
-          const model = gateway(profile?.default_chat_model ?? "google/gemini-3-flash-preview");
+          const resolved = await resolveWorkingModel();
+          const gateway = (_id?: string) => resolved.model;
+          const model = resolved.model;
 
           // ==================== AGENT TOOLS ====================
           const tools = {
