@@ -211,7 +211,9 @@ export const Route = createFileRoute("/api/chat")({
                 );
 
                 const toInsert = finalMessages
-                  .filter((m) => !existingIds.has(m.id))
+                  // Skip messages without a stable id — they'd be re-inserted
+                  // every turn and duplicate the thread.
+                  .filter((m) => m.id && !existingIds.has(m.id))
                   .map((m) => ({
                     thread_id: threadId,
                     user_id: userId,
