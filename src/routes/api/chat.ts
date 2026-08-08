@@ -316,6 +316,9 @@ export const Route = createFileRoute("/api/chat")({
           });
         } catch (err) {
           console.error("[chat] error:", err);
+          if (err instanceof AiCreditsExhaustedError) {
+            return new Response(err.message, { status: 402 });
+          }
           const msg = err instanceof Error ? err.message : "Internal error";
           return new Response(msg, { status: 500 });
         }
