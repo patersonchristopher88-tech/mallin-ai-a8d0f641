@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { generateObject } from "ai";
 import { z } from "zod";
-import { resolveModel } from "@/lib/ai-provider.server";
+import { resolveWorkingModel } from "@/lib/ai-provider.server";
 
 // Fact-check a vision-scan claim. Searches DuckDuckGo + Wikipedia,
 // then asks the model to cross-reference and score confidence.
@@ -82,7 +82,7 @@ export const Route = createFileRoute("/api/vision-factcheck")({
           const sources = [...wikiResults, ...ddgResults].slice(0, 8);
 
           const { object } = await generateObject({
-            model: resolveModel().model,
+            model: (await resolveWorkingModel()).model,
             schema: z.object({
               verdict: z.enum(["supported", "mixed", "unsupported", "unknown"]),
               confidence: z.number(),

@@ -28,7 +28,7 @@ export const Route = createFileRoute("/api/vision")({
             ? "You are ARIA's live vision system. In ONE short sentence (max 18 words) describe what you see in the camera frame. Be specific, punchy, cinematic. No filler like 'I see' or 'the image shows'."
             : "You are ARIA's live vision system. Describe the camera frame with clear, useful detail. Answer any user question about it directly.";
 
-          const ep = resolveChatEndpoint();
+          const ep = resolveChatEndpoint({ vision: true });
           const res = await fetch(ep.url, {
             method: "POST",
             headers: ep.headers,

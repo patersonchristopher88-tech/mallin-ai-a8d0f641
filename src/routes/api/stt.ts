@@ -9,9 +9,10 @@ export const Route = createFileRoute("/api/stt")({
           if (!auth?.startsWith("Bearer ")) {
             return new Response("Unauthorized", { status: 401 });
           }
-          const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
+          // Ollama Cloud has no speech-to-text endpoint, so transcription always
+          // runs through the built-in AI gateway.
           const LOVABLE_API_KEY = process.env.LOVABLE_API_KEY;
-          if (!OPENAI_API_KEY && !LOVABLE_API_KEY) {
+          if (!LOVABLE_API_KEY) {
             return new Response("No transcription provider configured", { status: 500 });
           }
 
@@ -33,24 +34,16 @@ export const Route = createFileRoute("/api/stt")({
             `recording.${(audio.type || "audio/webm").includes("mp4") ? "mp4" : "webm"}`;
 
           const upstream = new FormData();
-          upstream.append(
-            "model",
-            OPENAI_API_KEY ? "gpt-4o-mini-transcribe" : "openai/gpt-4o-mini-transcribe",
-          );
+          upstream.append("model", "openai/gpt-4o-mini-transcribe");
           upstream.append("file", audio, fileName);
 
-          const res = await fetch(
-            OPENAI_API_KEY
-              ? "https://api.openai.com/v1/audio/transcriptions"
-              : "https://ai.gateway.lovable.dev/v1/audio/transcriptions",
-            {
-              method: "POST",
-              headers: {
-                Authorization: `Bearer ${OPENAI_API_KEY ?? LOVABLE_API_KEY}`,
-              },
-              body: upstream,
+          const res = await fetch("https://ai.gateway.lovable.dev/v1/audio/transcriptions", {
+            method: "POST",
+            headers: {
+              Authorization: `Bearer ${LOVABLE_API_KEY}`,
             },
-          );
+            body: upstream,
+          });
 
           if (!res.ok) {
             const body = await res.text().catch(() => "");
